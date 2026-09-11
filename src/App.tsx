@@ -40,11 +40,27 @@ export const App: React.FC = () => {
     }
   }, [isDark]);
 
-  // 템플릿 변경 처리
+  // 템플릿 변경 처리: React 상태 즉시 반영
   const handleChangeTemplate = useCallback((updated: CardTemplate) => {
     setCurrentTemplate(updated);
-    saveActiveTemplate(updated);
   }, []);
+
+  // 로컬스토리지 동기화 디바운스 (빠른 타이핑 시 동기 I/O 지연 및 화면 버벅임 방지)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      saveActiveTemplate(currentTemplate);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [currentTemplate]);
+
+  // 페이지 새로고침/이탈 시 최신 템플릿 즉시 저장 보장 (T03-C21)
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      saveActiveTemplate(currentTemplate);
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [currentTemplate]);
 
   // 기본 템플릿으로 초기화
   const handleResetToDefault = useCallback(() => {

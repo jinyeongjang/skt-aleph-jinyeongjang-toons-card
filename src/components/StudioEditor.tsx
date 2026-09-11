@@ -1,7 +1,7 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import type { AspectRatio, CardTemplate, TextLayer, TextPositionPreset, ImageFitMode } from '../types/studio';
 import { ASPECT_RATIOS } from '../types/studio';
-import { renderCardTemplate, downloadCanvasImage } from '../utils/canvasRenderer';
+import { renderCardTemplate, downloadCanvasImage, calculateTextLayerBounds } from '../utils/canvasRenderer';
 import { PRESET_IMAGE_GALLERY } from '../utils/sampleImages';
 import {
   Download,
@@ -19,6 +19,10 @@ import {
   Bold,
   Sparkles,
   Square,
+  Move,
+  MousePointer,
+  Edit3,
+  Check,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -43,6 +47,12 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
     return currentTemplate.textLayers[0]?.id || '';
   });
 
+  // 더블클릭 시 캔버스 내 직접 편집 중인 레이어 ID
+  const [editingLayerId, setEditingLayerId] = useState<string | null>(null);
+
+  // 좌측 패널 텍스트 입력창 참조 (더블클릭 시 동기화 포커스용)
+  const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
+
   // 파일 거부 경고 토스트 상태 (T03-C09, T03-C10)
   const [fileError, setFileError] = useState<{ message: string; timestamp: number } | null>(null);
   const [fileSuccess, setFileSuccess] = useState<string | null>(null);
@@ -54,19 +64,22 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
   const activeLayer =
     currentTemplate.textLayers.find((l) => l.id === selectedLayerId) || currentTemplate.textLayers[0] || null;
 
-  // 캔버스 실시간 렌더링
-  const renderCanvas = useCallback(async () => {
-    if (!canvasRef.current) return;
-    try {
-      await renderCardTemplate(canvasRef.current, currentTemplate);
-    } catch (err) {
-      console.error('캔버스 렌더링 에러:', err);
-    }
-  }, [currentTemplate]);
-
+  // 캔버스 실시간 렌더링 (requestAnimationFrame 스케줄링으로 깜빡임 없는 60fps 보장)
   useEffect(() => {
-    renderCanvas();
-  }, [renderCanvas]);
+    let animId: number;
+    animId = requestAnimationFrame(async () => {
+      if (!canvasRef.current) return;
+      try {
+        await renderCardTemplate(canvasRef.current, currentTemplate);
+      } catch (err) {
+        console.error('캔버스 렌더링 에러:', err);
+      }
+    });
+
+    return () => {
+      cancelAnimationFrame(animId);
+    };
+  }, [currentTemplate]);
 
   // 화면비 변경 (T03-C11, T03-C12, T03-C13)
   const handleRatioChange = useCallback(
@@ -216,9 +229,12 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
         textLayers: remaining,
         updatedAt: Date.now(),
       });
+      if (editingLayerId === layerId) {
+        setEditingLayerId(null);
+      }
       setSelectedLayerId(remaining[0].id);
     },
-    [currentTemplate, onChangeTemplate],
+    [editingLayerId, currentTemplate, onChangeTemplate],
   );
 
   // 프리셋 이미지 적용
@@ -251,6 +267,189 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
   }, [currentTemplate, onSaveAsCustomTemplate]);
 
   const meta = ASPECT_RATIOS[currentTemplate.aspectRatio];
+
+  // 마우스 인터랙티브 조작 오버레이 참조
+  const overlayRef = useRef<HTMLDivElement | null>(null);
+
+  // 마우스/터치 직접 드래그 이동 및 크기 조절 상태
+  const [dragState, setDragState] = useState<{
+    isDragging: boolean;
+    isResizing: boolean;
+    layerId: string | null;
+    startPointerX: number;
+    startPointerY: number;
+    startPosX: number;
+    startPosY: number;
+    startFontSize: number;
+  }>({
+    isDragging: false,
+    isResizing: false,
+    layerId: null,
+    startPointerX: 0,
+    startPointerY: 0,
+    startPosX: 50,
+    startPosY: 50,
+    startFontSize: 48,
+  });
+
+  // 각 텍스트 레이어의 실제 바운딩 박스 계산
+  const layerBoundsList = useMemo(() => {
+    return currentTemplate.textLayers.map((l) => ({
+      layer: l,
+      bounds: calculateTextLayerBounds(l, meta.width, meta.height),
+    }));
+  }, [currentTemplate.textLayers, meta.width, meta.height]);
+
+  // 더블클릭/더블탭 판별용 최근 포인터 다운 타임스탬프
+  const lastPointerDownRef = useRef<{ time: number; layerId: string }>({ time: 0, layerId: '' });
+
+  // 레이어 더블클릭 핸들러: 캔버스 내 인라인 편집 및 좌측 패널 포커스 동시 활성화
+  const handleLayerDoubleClick = useCallback((layerId: string) => {
+    setSelectedLayerId(layerId);
+    setEditingLayerId(layerId);
+    setTimeout(() => {
+      textAreaRef.current?.focus();
+    }, 50);
+  }, []);
+
+  // 마우스/터치 드래그 시작
+  const handleLayerPointerDown = useCallback(
+    (e: React.PointerEvent, layerId: string, action: 'move' | 'resize' = 'move') => {
+      e.stopPropagation();
+      e.preventDefault();
+
+      // 다른 레이어 편집 중이었다면 편집 모드 종료
+      if (editingLayerId && editingLayerId !== layerId) {
+        setEditingLayerId(null);
+      }
+
+      // 더블클릭 감지 (동일 레이어에서 350ms 이내 연속 클릭 시)
+      const now = Date.now();
+      if (
+        action === 'move' &&
+        lastPointerDownRef.current.layerId === layerId &&
+        now - lastPointerDownRef.current.time < 350
+      ) {
+        lastPointerDownRef.current = { time: 0, layerId: '' };
+        handleLayerDoubleClick(layerId);
+        return;
+      }
+      lastPointerDownRef.current = { time: now, layerId };
+
+      if (editingLayerId === layerId) {
+        return;
+      }
+
+      try {
+        (e.target as HTMLElement).setPointerCapture(e.pointerId);
+      } catch {
+        // ignore
+      }
+
+      const targetLayer = currentTemplate.textLayers.find((l) => l.id === layerId);
+      if (!targetLayer) return;
+
+      setSelectedLayerId(layerId);
+
+      const overlay = overlayRef.current;
+      if (!overlay) return;
+
+      const rect = overlay.getBoundingClientRect();
+      const scaleX = meta.width / rect.width;
+      const scaleY = meta.height / rect.height;
+      const pointerCanvasX = (e.clientX - rect.left) * scaleX;
+      const pointerCanvasY = (e.clientY - rect.top) * scaleY;
+
+      setDragState({
+        isDragging: action === 'move',
+        isResizing: action === 'resize',
+        layerId,
+        startPointerX: pointerCanvasX,
+        startPointerY: pointerCanvasY,
+        startPosX: targetLayer.posX,
+        startPosY: targetLayer.posY,
+        startFontSize: targetLayer.fontSize,
+      });
+    },
+    [editingLayerId, handleLayerDoubleClick, currentTemplate.textLayers, meta.width, meta.height],
+  );
+
+  // 마우스/터치 드래그 이동
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent) => {
+      if (!dragState.isDragging && !dragState.isResizing) return;
+      if (!dragState.layerId) return;
+
+      const overlay = overlayRef.current;
+      if (!overlay) return;
+
+      const rect = overlay.getBoundingClientRect();
+      const scaleX = meta.width / rect.width;
+      const scaleY = meta.height / rect.height;
+      const pointerCanvasX = (e.clientX - rect.left) * scaleX;
+      const pointerCanvasY = (e.clientY - rect.top) * scaleY;
+
+      const deltaX = pointerCanvasX - dragState.startPointerX;
+      const deltaY = pointerCanvasY - dragState.startPointerY;
+
+      if (dragState.isDragging) {
+        const newPosX = Math.max(5, Math.min(95, dragState.startPosX + (deltaX / meta.width) * 100));
+        const newPosY = Math.max(5, Math.min(95, dragState.startPosY + (deltaY / meta.height) * 100));
+
+        const updatedLayers = currentTemplate.textLayers.map((l) => {
+          if (l.id === dragState.layerId) {
+            return {
+              ...l,
+              posX: Math.round(newPosX * 10) / 10,
+              posY: Math.round(newPosY * 10) / 10,
+              presetPosition: 'custom' as const,
+            };
+          }
+          return l;
+        });
+
+        onChangeTemplate({
+          ...currentTemplate,
+          textLayers: updatedLayers,
+          updatedAt: Date.now(),
+        });
+      } else if (dragState.isResizing) {
+        const scaleDelta = (deltaX + deltaY) / 3.5;
+        const newSize = Math.max(16, Math.min(120, Math.round(dragState.startFontSize + scaleDelta)));
+
+        const updatedLayers = currentTemplate.textLayers.map((l) => {
+          if (l.id === dragState.layerId) {
+            return {
+              ...l,
+              fontSize: newSize,
+            };
+          }
+          return l;
+        });
+
+        onChangeTemplate({
+          ...currentTemplate,
+          textLayers: updatedLayers,
+          updatedAt: Date.now(),
+        });
+      }
+    },
+    [dragState, currentTemplate, meta.width, meta.height, onChangeTemplate],
+  );
+
+  // 마우스/터치 드래그 종료
+  const handlePointerUp = useCallback((e: React.PointerEvent) => {
+    try {
+      (e.target as HTMLElement).releasePointerCapture?.(e.pointerId);
+    } catch {
+      // ignore
+    }
+    setDragState((prev) => ({
+      ...prev,
+      isDragging: false,
+      isResizing: false,
+    }));
+  }, []);
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-4">
@@ -452,6 +651,51 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
               </select>
             </div>
 
+            {/* 이미지 투명도 조절 */}
+            {currentTemplate.imageUrl && (
+              <div className="rounded-lg border border-neutral-200/60 bg-white/70 p-2.5 dark:border-neutral-700/60 dark:bg-neutral-800/60">
+                <div className="mb-1.5 flex items-center justify-between">
+                  <label className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-400">
+                    이미지 투명도
+                  </label>
+                  <span className="font-mono text-[11px] font-bold text-sky-600 dark:text-sky-400">
+                    {currentTemplate.imageOpacity ?? 100}%
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="5"
+                    value={currentTemplate.imageOpacity ?? 100}
+                    onChange={(e) =>
+                      onChangeTemplate({
+                        ...currentTemplate,
+                        imageOpacity: Number(e.target.value),
+                        updatedAt: Date.now(),
+                      })
+                    }
+                    className="h-1.5 flex-1 cursor-pointer rounded-lg bg-neutral-200 accent-sky-600 dark:bg-neutral-700"
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onChangeTemplate({
+                        ...currentTemplate,
+                        imageOpacity: 100,
+                        updatedAt: Date.now(),
+                      })
+                    }
+                    className="cursor-pointer rounded-lg border border-neutral-300/80 bg-white px-2 py-0.5 text-[10px] font-medium text-neutral-600 shadow-2xs hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300"
+                    title="100%로 리셋"
+                  >
+                    100%
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* 프리셋 이미지 빠른 선택 썸네일 */}
             <div>
               <p className="mb-1.5 text-[11px] font-medium text-neutral-500 dark:text-neutral-400">
@@ -519,6 +763,12 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
                     key={l.id}
                     type="button"
                     onClick={() => setSelectedLayerId(l.id)}
+                    onDoubleClick={() => {
+                      setSelectedLayerId(l.id);
+                      textAreaRef.current?.focus();
+                      textAreaRef.current?.select();
+                    }}
+                    title="클릭하여 선택 · 더블클릭하여 수정 포커스"
                     className="relative flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors"
                   >
                     {isCurrent && (
@@ -562,6 +812,7 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
                     문구 내용 (엔터 줄바꿈 및 이모지 지원)
                   </label>
                   <textarea
+                    ref={textAreaRef}
                     rows={3}
                     value={activeLayer.text}
                     onChange={(e) => updateActiveLayer({ text: e.target.value })}
@@ -634,20 +885,57 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
                     </div>
                   </div>
 
-                  {/* Y축 미세 위치 슬라이더 */}
-                  <input
-                    type="range"
-                    min="5"
-                    max="95"
-                    value={activeLayer.posY}
-                    onChange={(e) =>
-                      updateActiveLayer({
-                        posY: Number(e.target.value),
-                        presetPosition: 'custom',
-                      })
-                    }
-                    className="h-1.5 w-full cursor-pointer rounded-lg bg-neutral-200 accent-indigo-600 dark:bg-neutral-700"
-                  />
+                  {/* X축 / Y축 미세 위치 슬라이더 & 마우스 드래그 안내 */}
+                  <div className="space-y-2 rounded-lg border border-neutral-200/60 bg-white/60 p-2.5 dark:border-neutral-700/60 dark:bg-neutral-800/40">
+                    <div>
+                      <div className="mb-1 flex items-center justify-between text-[11px]">
+                        <span className="font-medium text-neutral-600 dark:text-neutral-400">가로 위치 (X)</span>
+                        <span className="font-mono text-[11px] font-bold text-indigo-600 dark:text-indigo-400">
+                          {activeLayer.posX}%
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min="5"
+                        max="95"
+                        value={activeLayer.posX}
+                        onChange={(e) =>
+                          updateActiveLayer({
+                            posX: Number(e.target.value),
+                            presetPosition: 'custom',
+                          })
+                        }
+                        className="h-1.5 w-full cursor-pointer rounded-lg bg-neutral-200 accent-indigo-600 dark:bg-neutral-700"
+                      />
+                    </div>
+
+                    <div>
+                      <div className="mb-1 flex items-center justify-between text-[11px]">
+                        <span className="font-medium text-neutral-600 dark:text-neutral-400">세로 위치 (Y)</span>
+                        <span className="font-mono text-[11px] font-bold text-indigo-600 dark:text-indigo-400">
+                          {activeLayer.posY}%
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min="5"
+                        max="95"
+                        value={activeLayer.posY}
+                        onChange={(e) =>
+                          updateActiveLayer({
+                            posY: Number(e.target.value),
+                            presetPosition: 'custom',
+                          })
+                        }
+                        className="h-1.5 w-full cursor-pointer rounded-lg bg-neutral-200 accent-indigo-600 dark:bg-neutral-700"
+                      />
+                    </div>
+
+                    <p className="flex items-center gap-1 text-[10px] text-neutral-500 dark:text-neutral-400">
+                      <MousePointer className="h-3 w-3 shrink-0 text-indigo-500" />
+                      <span>캔버스 위 문구를 마우스로 직접 끌어서 이동할 수 있습니다.</span>
+                    </p>
+                  </div>
                 </div>
 
                 {/* 3. 글자 크기 */}
@@ -759,6 +1047,45 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
                   </div>
                 </div>
 
+                {/* 5. 문구 투명도 */}
+                <div>
+                  <div className="mb-1 flex items-center justify-between">
+                    <label className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-400">
+                      문구 투명도
+                    </label>
+                    <span className="font-mono text-[11px] font-bold text-indigo-600 dark:text-indigo-400">
+                      {activeLayer.opacity ?? 100}%
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="range"
+                      min="10"
+                      max="100"
+                      step="5"
+                      value={activeLayer.opacity ?? 100}
+                      onChange={(e) => updateActiveLayer({ opacity: Number(e.target.value) })}
+                      className="h-1.5 flex-1 cursor-pointer rounded-lg bg-neutral-200 accent-indigo-600 dark:bg-neutral-700"
+                    />
+                    <div className="flex items-center gap-1">
+                      {[50, 75, 100].map((val) => (
+                        <button
+                          key={val}
+                          type="button"
+                          onClick={() => updateActiveLayer({ opacity: val })}
+                          className={`cursor-pointer rounded-lg border px-2 py-0.5 text-[10px] font-medium transition-colors ${
+                            (activeLayer.opacity ?? 100) === val
+                              ? 'border-indigo-500 bg-indigo-50 font-bold text-indigo-700 dark:border-indigo-400 dark:bg-indigo-950/60 dark:text-indigo-300'
+                              : 'border-neutral-300/80 bg-white text-neutral-600 hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300'
+                          }`}
+                        >
+                          {val}%
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
                 {/* 스타일 토글 (굵게, 그림자, 배경 배지) */}
                 <div className="flex flex-wrap items-center gap-2 border-t border-neutral-200/70 pt-2.5 dark:border-neutral-700/70">
                   <button
@@ -811,22 +1138,28 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
 
         {/* ================= 우측: 실시간 캔버스 미리보기 ================= */}
         <div className="flex min-h-[480px] flex-col items-center justify-center rounded-2xl border border-neutral-200/80 bg-neutral-900/[0.03] p-6 lg:col-span-7 dark:border-neutral-800 dark:bg-neutral-900/40">
-          {/* 상단 메타 바 */}
-          <div className="mb-3 flex w-full max-w-md items-center justify-between text-xs text-neutral-600 dark:text-neutral-400">
-            <div className="flex items-center gap-2 rounded-full border border-neutral-200/80 bg-white/80 px-3 py-1 shadow-xs dark:border-neutral-800 dark:bg-neutral-800/80">
-              <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
-              <span className="font-semibold text-neutral-800 dark:text-neutral-200">{meta.label} 실시간 렌더링</span>
+          {/* 상단 메타 바 & 마우스 인터랙티브 조작 안내 */}
+          <div className="mb-3 flex w-full max-w-md flex-col items-center gap-2">
+            <div className="flex w-full items-center justify-between text-xs text-neutral-600 dark:text-neutral-400">
+              <div className="flex items-center gap-2 rounded-full border border-neutral-200/80 bg-white/80 px-3 py-1 shadow-xs dark:border-neutral-800 dark:bg-neutral-800/80">
+                <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
+                <span className="font-semibold text-neutral-800 dark:text-neutral-200">{meta.label} 실시간 렌더링</span>
+              </div>
+              <span className="rounded-full border border-neutral-200/60 bg-white/60 px-2.5 py-0.5 font-mono text-[11px] text-neutral-500 dark:border-neutral-800 dark:bg-neutral-800/60 dark:text-neutral-400">
+                {meta.description} (1080p 규격)
+              </span>
             </div>
-            <span className="rounded-full border border-neutral-200/60 bg-white/60 px-2.5 py-0.5 font-mono text-[11px] text-neutral-500 dark:border-neutral-800 dark:bg-neutral-800/60 dark:text-neutral-400">
-              {meta.description} (1080p 규격)
-            </span>
+
+            {/* 마우스 직접 조작 안내 뱃지 */}
+            <div className="flex items-center gap-1.5 rounded-full border border-indigo-200/80 bg-indigo-50/90 px-3 py-1 text-[11px] font-semibold text-indigo-700 shadow-2xs dark:border-indigo-800/70 dark:bg-indigo-950/70 dark:text-indigo-300">
+              <MousePointer className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+              <span>캔버스 위 요소를 더블클릭하여 문구 수정 · 끌어서 이동 및 크기 조절</span>
+            </div>
           </div>
 
           {/* 메인 캔버스 뷰포트 (체커보드 투명 패턴 배경 + 그림자 베젤 + 부드러운 비율 전환 애니메이션) */}
-          <motion.div
-            layout
-            transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-            className="bg-canvas-pattern relative flex items-center justify-center overflow-hidden rounded-2xl border border-neutral-800/20 shadow-[0_20px_50px_rgba(0,0,0,0.25)] ring-1 ring-black/10 dark:border-neutral-700/80 dark:ring-white/10"
+          <div
+            className="bg-canvas-pattern relative flex items-center justify-center overflow-hidden rounded-2xl border border-neutral-800/20 shadow-[0_20px_50px_rgba(0,0,0,0.25)] ring-1 ring-black/10 transition-[max-width,aspect-ratio] duration-300 ease-out dark:border-neutral-700/80 dark:ring-white/10"
             style={{
               width: '100%',
               maxWidth:
@@ -848,7 +1181,159 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
               className="pointer-events-none h-full w-full object-contain select-none"
               title="실시간 캔버스 미리보기"
             />
-          </motion.div>
+
+            {/* 마우스/터치 인터랙티브 직접 조작 오버레이 */}
+            <div
+              ref={overlayRef}
+              onPointerDown={() => {
+                if (editingLayerId) {
+                  setEditingLayerId(null);
+                }
+              }}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              onPointerLeave={handlePointerUp}
+              className="pointer-events-auto absolute inset-0 touch-none select-none"
+            >
+              {layerBoundsList.map(({ layer, bounds }) => {
+                const isSelected = layer.id === selectedLayerId;
+                const isEditing = layer.id === editingLayerId;
+                const leftPct = (bounds.x / meta.width) * 100;
+                const topPct = (bounds.y / meta.height) * 100;
+                const widthPct = (bounds.width / meta.width) * 100;
+                const heightPct = (bounds.height / meta.height) * 100;
+
+                // 더블클릭 활성화 시 인라인 에디터 표시
+                if (isEditing) {
+                  const centerXPct = ((bounds.x + bounds.width / 2) / meta.width) * 100;
+                  const centerYPct = ((bounds.y + bounds.height / 2) / meta.height) * 100;
+
+                  return (
+                    <div
+                      key={layer.id}
+                      style={{
+                        left: `${Math.max(5, Math.min(95, centerXPct))}%`,
+                        top: `${Math.max(10, Math.min(90, centerYPct))}%`,
+                        transform: 'translate(-50%, -50%)',
+                        width: `${Math.max(55, Math.min(94, widthPct + 15))}%`,
+                        minWidth: '220px',
+                        maxWidth: '94%',
+                      }}
+                      onPointerDown={(e) => e.stopPropagation()}
+                      className="absolute z-30 flex flex-col items-center select-text"
+                    >
+                      <div className="w-full rounded-xl border-2 border-indigo-500 bg-neutral-900/95 p-2 shadow-2xl ring-4 ring-indigo-500/20">
+                        <div className="mb-1.5 flex items-center justify-between px-1 text-[10px] text-indigo-300">
+                          <span className="flex items-center gap-1 font-semibold text-white">
+                            <Edit3 className="h-3 w-3 text-indigo-400" />
+                            <span>문구 내용 직접 수정</span>
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setEditingLayerId(null)}
+                            className="flex cursor-pointer items-center gap-1 rounded bg-indigo-600 px-2 py-0.5 text-[10px] font-bold text-white transition-colors hover:bg-indigo-500 active:scale-95"
+                          >
+                            <Check className="h-3 w-3" />
+                            <span>완료</span>
+                          </button>
+                        </div>
+                        <textarea
+                          ref={(el) => {
+                            if (el) {
+                              el.focus();
+                            }
+                          }}
+                          value={layer.text}
+                          onChange={(e) => updateActiveLayer({ text: e.target.value })}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Escape' || (e.key === 'Enter' && (e.ctrlKey || e.metaKey))) {
+                              e.preventDefault();
+                              setEditingLayerId(null);
+                            }
+                          }}
+                          placeholder="문구를 입력하세요..."
+                          rows={Math.min(5, Math.max(2, layer.text.split('\n').length))}
+                          className="w-full resize-none rounded-lg border border-neutral-700 bg-neutral-950/90 p-2 text-center text-xs leading-relaxed font-semibold text-white placeholder-neutral-500 focus:border-indigo-400 focus:outline-none"
+                        />
+                        <div className="mt-1 flex items-center justify-between px-1 text-[9px] text-neutral-400">
+                          <span>Enter: 줄바꿈</span>
+                          <span>Ctrl+Enter 또는 Esc: 완료</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div
+                    key={layer.id}
+                    style={{
+                      left: `${leftPct}%`,
+                      top: `${topPct}%`,
+                      width: `${widthPct}%`,
+                      height: `${heightPct}%`,
+                    }}
+                    onPointerDown={(e) => handleLayerPointerDown(e, layer.id, 'move')}
+                    onDoubleClick={(e) => {
+                      e.stopPropagation();
+                      handleLayerDoubleClick(layer.id);
+                    }}
+                    className={`group absolute transition-[box-shadow,border-color] ${
+                      isSelected
+                        ? 'cursor-grab rounded-lg border-2 border-indigo-500 bg-indigo-500/10 shadow-sm active:cursor-grabbing'
+                        : 'cursor-pointer rounded-lg border border-dashed border-transparent hover:border-indigo-400/80 hover:bg-indigo-500/5'
+                    }`}
+                    title={
+                      isSelected
+                        ? '더블클릭하여 내용 수정 · 마우스로 드래그하여 이동'
+                        : '클릭하여 선택 · 더블클릭하여 내용 수정'
+                    }
+                  >
+                    {/* 선택된 레이어 상단 조작 라벨 */}
+                    {isSelected && (
+                      <div className="pointer-events-none absolute -top-6 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-indigo-600 px-2 py-0.5 text-[9px] font-bold whitespace-nowrap text-white shadow-xs">
+                        <span className="flex items-center gap-1">
+                          <Move className="h-2.5 w-2.5" />
+                          <span>이동</span>
+                        </span>
+                        <span className="text-indigo-300">|</span>
+                        <span className="flex items-center gap-1">
+                          <Edit3 className="h-2.5 w-2.5" />
+                          <span>더블클릭 수정</span>
+                        </span>
+                      </div>
+                    )}
+
+                    {/* 선택된 레이어 4개 코너 크기 조절 핸들 */}
+                    {isSelected && (
+                      <>
+                        <div
+                          onPointerDown={(e) => handleLayerPointerDown(e, layer.id, 'resize')}
+                          className="absolute -right-1.5 -bottom-1.5 h-3 w-3 cursor-nwse-resize rounded-full border-2 border-indigo-600 bg-white shadow-xs hover:scale-125"
+                          title="글자 크기 조절"
+                        />
+                        <div
+                          onPointerDown={(e) => handleLayerPointerDown(e, layer.id, 'resize')}
+                          className="absolute -top-1.5 -right-1.5 h-3 w-3 cursor-nesw-resize rounded-full border-2 border-indigo-600 bg-white shadow-xs hover:scale-125"
+                          title="글자 크기 조절"
+                        />
+                        <div
+                          onPointerDown={(e) => handleLayerPointerDown(e, layer.id, 'resize')}
+                          className="absolute -bottom-1.5 -left-1.5 h-3 w-3 cursor-nesw-resize rounded-full border-2 border-indigo-600 bg-white shadow-xs hover:scale-125"
+                          title="글자 크기 조절"
+                        />
+                        <div
+                          onPointerDown={(e) => handleLayerPointerDown(e, layer.id, 'resize')}
+                          className="absolute -top-1.5 -left-1.5 h-3 w-3 cursor-nwse-resize rounded-full border-2 border-indigo-600 bg-white shadow-xs hover:scale-125"
+                          title="글자 크기 조절"
+                        />
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
 
           {/* 하단 캔버스 안내 설명 */}
           <div className="mt-4 flex flex-wrap items-center justify-center gap-4 text-[11px] text-neutral-500 dark:text-neutral-400">

@@ -1,16 +1,43 @@
 import { ASPECT_RATIOS, type CardTemplate, type TextLayer } from '../types/studio';
 
 /**
- * 이미지 로더 헬퍼 (Promise 기반)
+ * 고성능 이미지 인메모리 캐시 (텍스트 입력 시 재로드 깜빡임 방지)
+ */
+const imageCache = new Map<string, HTMLImageElement>();
+
+/**
+ * 이미지 로더 헬퍼 (캐싱 및 Promise 기반)
  */
 export const loadImage = (src: string): Promise<HTMLImageElement> => {
+  const cached = imageCache.get(src);
+  if (cached && cached.complete && cached.naturalWidth > 0) {
+    return Promise.resolve(cached);
+  }
+
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
-    img.onload = () => resolve(img);
+    img.onload = () => {
+      imageCache.set(src, img);
+      resolve(img);
+    };
     img.onerror = (err) => reject(new Error(`이미지 로드 실패: ${String(err)}`));
     img.src = src;
   });
+};
+
+/**
+ * 폰트 로드 대기 캐시 (최초 1회 대기 후 즉시 완료 반환)
+ */
+let fontsReadyPromise: Promise<void> | null = null;
+const ensureFontsReady = (): Promise<void> => {
+  if (fontsReadyPromise) return fontsReadyPromise;
+  if (typeof document !== 'undefined' && 'fonts' in document) {
+    fontsReadyPromise = document.fonts.ready.then(() => {}).catch(() => {});
+    return fontsReadyPromise;
+  }
+  fontsReadyPromise = Promise.resolve();
+  return fontsReadyPromise;
 };
 
 /**
@@ -125,42 +152,41 @@ export const renderCardTemplate = async (
   const targetWidth = meta.width;
   const targetHeight = meta.height;
 
-  // 글꼴 로드 대기 (웹폰트 깜빡임 및 레이아웃 틀어짐 방지)
-  if (typeof document !== 'undefined' && 'fonts' in document) {
-    try {
-      await document.fonts.ready;
-    } catch {
-      // 폰트 로드 실패 시 시스템 글꼴로 즉각 폴백
-    }
-  }
+  // 글꼴 로드 대기 (최초 1회 캐싱 후 즉시 완료)
+  await ensureFontsReady();
 
-  // 캔버스 크기 지정
-  canvas.width = targetWidth;
-  canvas.height = targetHeight;
+  // 오프스크린 캔버스 버퍼 생성 (더블 버퍼링으로 화면 깜빡임 원천 차단)
+  const offscreen = document.createElement('canvas');
+  offscreen.width = targetWidth;
+  offscreen.height = targetHeight;
 
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('2D 컨텍스트를 생성할 수 없습니다.');
+  const offCtx = offscreen.getContext('2d');
+  if (!offCtx) throw new Error('2D 컨텍스트를 생성할 수 없습니다.');
 
   // 1. 기본 배경색 칠하기
-  ctx.fillStyle = template.backgroundColor || '#111827';
-  ctx.fillRect(0, 0, targetWidth, targetHeight);
+  offCtx.fillStyle = template.backgroundColor || '#111827';
+  offCtx.fillRect(0, 0, targetWidth, targetHeight);
 
-  // 2. 배경 이미지 렌더링
+  // 2. 배경 이미지 렌더링 (인메모리 캐시로 즉시 그리기 및 투명도 반영)
   if (template.imageUrl) {
     try {
       const img = await loadImage(template.imageUrl);
       const imgWidth = img.naturalWidth || img.width;
       const imgHeight = img.naturalHeight || img.height;
 
+      const imgOpacity = Math.max(0, Math.min(1, (template.imageOpacity ?? 100) / 100));
+      offCtx.save();
+      offCtx.globalAlpha = imgOpacity;
+
       if (template.imageFit === 'fill') {
-        ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+        offCtx.drawImage(img, 0, 0, targetWidth, targetHeight);
       } else if (template.imageFit === 'contain') {
         const scale = Math.min(targetWidth / imgWidth, targetHeight / imgHeight);
         const drawW = imgWidth * scale;
         const drawH = imgHeight * scale;
         const drawX = (targetWidth - drawW) / 2;
         const drawY = (targetHeight - drawH) / 2;
-        ctx.drawImage(img, drawX, drawY, drawW, drawH);
+        offCtx.drawImage(img, drawX, drawY, drawW, drawH);
       } else {
         // 기본 'cover' (중앙 기준 꽉 채우기)
         const scale = Math.max(targetWidth / imgWidth, targetHeight / imgHeight);
@@ -168,8 +194,9 @@ export const renderCardTemplate = async (
         const drawH = imgHeight * scale;
         const drawX = (targetWidth - drawW) / 2;
         const drawY = (targetHeight - drawH) / 2;
-        ctx.drawImage(img, drawX, drawY, drawW, drawH);
+        offCtx.drawImage(img, drawX, drawY, drawW, drawH);
       }
+      offCtx.restore();
     } catch (e) {
       console.warn('배경 이미지 로드 실패:', e);
       // 이미지 실패 시 배경색 유지
@@ -178,7 +205,17 @@ export const renderCardTemplate = async (
 
   // 3. 텍스트 레이어 렌더링
   for (const layer of template.textLayers) {
-    renderSingleTextLayer(ctx, layer, targetWidth, targetHeight, options.legacyDefectMode);
+    renderSingleTextLayer(offCtx, layer, targetWidth, targetHeight, options.legacyDefectMode);
+  }
+
+  // 4. 완성된 오프스크린 버퍼를 실제 대상 캔버스에 단일 프레임 복사 (Zero-Flicker)
+  if (canvas.width !== targetWidth) canvas.width = targetWidth;
+  if (canvas.height !== targetHeight) canvas.height = targetHeight;
+
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.clearRect(0, 0, targetWidth, targetHeight);
+    ctx.drawImage(offscreen, 0, 0);
   }
 };
 
@@ -195,6 +232,10 @@ const renderSingleTextLayer = (
   if (!layer.text || layer.text.trim() === '') return;
 
   ctx.save();
+
+  // 문구 레이어 투명도 설정 (0 ~ 100 -> 0.0 ~ 1.0)
+  const layerOpacity = Math.max(0, Math.min(1, (layer.opacity ?? 100) / 100));
+  ctx.globalAlpha = layerOpacity;
 
   // 폰트 설정
   const weight = layer.isBold ? 'bold' : 'normal';
@@ -222,16 +263,13 @@ const renderSingleTextLayer = (
     baseY = canvasHeight - 120 - totalBlockHeight / 2;
   }
 
-  // X 좌표 계산 (퍼센트 기준)
+  // X 좌표 계산 (퍼센트 기준: 마우스 드래그 및 정렬 반영)
   let baseX = (canvasWidth * layer.posX) / 100;
   if (layer.align === 'center') {
-    baseX = canvasWidth / 2;
     ctx.textAlign = 'center';
   } else if (layer.align === 'left') {
-    baseX = marginX;
     ctx.textAlign = 'left';
   } else if (layer.align === 'right') {
-    baseX = canvasWidth - marginX;
     ctx.textAlign = 'right';
   }
 
@@ -332,4 +370,85 @@ export const downloadCanvasImage = async (
     mimeType,
     0.95,
   );
+};
+
+/**
+ * 인터랙티브 캔버스 조작용 텍스트 레이어 바운딩 박스
+ */
+export interface TextLayerBounds {
+  layerId: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  baseX: number;
+  baseY: number;
+}
+
+/**
+ * 텍스트 레이어의 실제 화면상 픽셀 영역 계산기 (마우스 클릭 & 드래그 감지용)
+ */
+export const calculateTextLayerBounds = (
+  layer: TextLayer,
+  canvasWidth: number,
+  canvasHeight: number,
+  legacyDefectMode = false,
+): TextLayerBounds => {
+  const marginX = 60;
+  const maxWidth = canvasWidth - marginX * 2;
+
+  let totalBlockHeight = layer.fontSize * 1.35;
+  let maxLineWidth = 120;
+
+  if (typeof document !== 'undefined') {
+    const dummy = document.createElement('canvas');
+    const ctx = dummy.getContext('2d');
+    if (ctx) {
+      const weight = layer.isBold ? 'bold' : 'normal';
+      const fontFamily =
+        layer.fontFamily || '-apple-system, BlinkMacSystemFont, "Pretendard", "Segoe UI", Roboto, sans-serif';
+      ctx.font = `${weight} ${layer.fontSize}px ${fontFamily}`;
+      const lines = breakTextIntoLines(ctx, layer.text || '', maxWidth, legacyDefectMode);
+      const lineHeight = layer.fontSize * 1.35;
+      totalBlockHeight = Math.max(1, lines.length) * lineHeight;
+
+      for (const line of lines) {
+        const w = ctx.measureText(line).width;
+        if (w > maxLineWidth) maxLineWidth = w;
+      }
+    }
+  }
+
+  let baseY = (canvasHeight * layer.posY) / 100;
+  if (layer.presetPosition === 'top') {
+    baseY = 120 + totalBlockHeight / 2;
+  } else if (layer.presetPosition === 'middle') {
+    baseY = canvasHeight / 2;
+  } else if (layer.presetPosition === 'bottom') {
+    baseY = canvasHeight - 120 - totalBlockHeight / 2;
+  }
+
+  const baseX = (canvasWidth * layer.posX) / 100;
+  const padX = layer.fontSize * 0.35;
+  const padY = layer.fontSize * 0.2;
+  const boxWidth = maxLineWidth + padX * 2;
+  const boxHeight = totalBlockHeight + padY;
+
+  let boxX = baseX - padX;
+  if (layer.align === 'center') {
+    boxX = baseX - maxLineWidth / 2 - padX;
+  } else if (layer.align === 'right') {
+    boxX = baseX - maxLineWidth - padX;
+  }
+  const boxY = baseY - totalBlockHeight / 2 - padY / 2;
+
+  return {
+    layerId: layer.id,
+    x: boxX,
+    y: boxY,
+    width: Math.max(boxWidth, 40),
+    height: Math.max(boxHeight, 30),
+    baseX,
+    baseY,
+  };
 };

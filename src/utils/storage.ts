@@ -327,6 +327,7 @@ export const validateAndParseTemplateJson = (jsonString: string): TemplateImport
       fontFamily: typeof layerObj.fontFamily === 'string' ? layerObj.fontFamily : 'Pretendard, sans-serif',
       isBold: typeof layerObj.isBold === 'boolean' ? layerObj.isBold : true,
       shadow: typeof layerObj.shadow === 'boolean' ? layerObj.shadow : true,
+      opacity: typeof layerObj.opacity === 'number' ? layerObj.opacity : 100,
     };
   });
 
@@ -339,6 +340,7 @@ export const validateAndParseTemplateJson = (jsonString: string): TemplateImport
     imageFit: ['cover', 'contain', 'fill'].includes(String(obj.imageFit))
       ? (obj.imageFit as 'cover' | 'contain' | 'fill')
       : 'cover',
+    imageOpacity: typeof obj.imageOpacity === 'number' ? obj.imageOpacity : 100,
     backgroundColor: typeof obj.backgroundColor === 'string' ? obj.backgroundColor : '#111827',
     textLayers: normalizedLayers,
     createdAt: typeof obj.createdAt === 'number' ? obj.createdAt : now,

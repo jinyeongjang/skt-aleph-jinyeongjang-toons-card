@@ -20,76 +20,92 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenGalleryModal,
 }) => {
   return (
-    <header className="fixed inset-x-0 top-0 z-50 h-16 border-b border-neutral-200/80 bg-white transition-colors dark:border-neutral-800 dark:bg-neutral-900">
+    <header className="fixed inset-x-0 top-0 z-50 h-16 border-b border-neutral-200/80 bg-white shadow-2xs transition-colors dark:border-neutral-800 dark:bg-neutral-900">
       <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-3 sm:px-6">
-        {/* Logo & Brand */}
+        {/* 1. 로고 & 브랜드 */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2.5 rounded-lg p-1">
+          <div className="flex items-center gap-2.5">
             <motion.div
               whileHover={{ scale: 1.08, rotate: 6 }}
               whileTap={{ scale: 0.95 }}
               transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-              className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 via-sky-500 to-emerald-400 text-white shadow-md shadow-indigo-500/20"
+              className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-indigo-500 via-sky-500 to-emerald-400 text-white shadow-md shadow-indigo-500/20"
             >
               <Sparkles className="h-5 w-5" />
             </motion.div>
-            <div>
+            <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
                 <span className="text-sm font-extrabold tracking-tight text-neutral-900 sm:text-base dark:text-white">
-                  ToonsCard jinyeongjang Studio
+                  ToonsCard
+                </span>
+                <span className="hidden text-xs font-semibold text-neutral-400 sm:inline dark:text-neutral-500">|</span>
+                <span className="hidden text-xs font-semibold text-neutral-600 sm:inline dark:text-neutral-300">
+                  jinyeongjang Studio
                 </span>
               </div>
-              <p className="hidden text-[11px] text-neutral-500 sm:block dark:text-neutral-400">
-                밈·카드·SNS 이미지 제작 스튜디오
-              </p>
+              <div className="flex items-center gap-1.5">
+                <p className="text-[10px] font-medium text-neutral-500 sm:text-[11px] dark:text-neutral-400">
+                  짤·카드 제작 스튜디오
+                </p>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Navigation Bar */}
-        <nav className="hidden items-center gap-1.5 text-xs font-medium lg:flex">
-          <div className="flex items-center gap-1.5 rounded-xl bg-neutral-900 px-3.5 py-1.5 font-bold text-white shadow-xs dark:bg-white dark:text-neutral-950">
+        {/* 네비게이션 바 (반응형: 대화면 텍스트+아이콘, 소화면 아이콘) */}
+        <nav className="flex items-center gap-1 text-xs font-medium sm:gap-1.5">
+          {/* 활성 편집기 표시 */}
+          <div className="flex items-center gap-1.5 rounded-xl bg-neutral-900 px-3 py-1.5 font-bold text-white shadow-xs dark:bg-white dark:text-neutral-950">
             <Sliders className="h-3.5 w-3.5 text-indigo-400 dark:text-indigo-600" />
-            <span>편집기</span>
+            <span className="hidden md:inline">편집기</span>
           </div>
 
+          {/* 화면비 비교 */}
           <motion.button
             type="button"
-            whileHover={{ y: -1 }}
             whileTap={{ scale: 0.96 }}
             onClick={onOpenAspectModal}
-            className="flex cursor-pointer items-center gap-1.5 rounded-xl px-3 py-1.5 text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 hover:underline dark:text-neutral-400 dark:hover:bg-neutral-800/70 dark:hover:text-white"
+            className="group flex cursor-pointer items-center gap-1.5 rounded-xl border border-transparent px-2.5 py-1.5 text-neutral-600 transition-all hover:border-neutral-200/80 hover:bg-neutral-100 hover:text-neutral-900 hover:underline sm:px-3 dark:text-neutral-400 dark:hover:border-neutral-700/60 dark:hover:bg-neutral-800 dark:hover:text-white"
+            title="세 화면비(1:1, 4:5, 9:16) 비교 검사기"
           >
-            <Columns className="h-3.5 w-3.5 text-sky-500" />
-            <span>화면비 비교</span>
+            <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-sky-50 text-sky-600 transition-colors group-hover:bg-sky-100 dark:bg-sky-950/50 dark:text-sky-400 dark:group-hover:bg-sky-900/60">
+              <Columns className="h-3.5 w-3.5" />
+            </span>
+            <span className="hidden md:inline">화면비 비교</span>
           </motion.button>
 
+          {/* 템플릿 보관함 */}
           <motion.button
             type="button"
-            whileHover={{ y: -1 }}
             whileTap={{ scale: 0.96 }}
             onClick={onOpenTemplateModal}
-            className="flex cursor-pointer items-center gap-1.5 rounded-xl px-3 py-1.5 text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 hover:underline dark:text-neutral-400 dark:hover:bg-neutral-800/70 dark:hover:text-white"
+            className="group flex cursor-pointer items-center gap-1.5 rounded-xl border border-transparent px-2.5 py-1.5 text-neutral-600 transition-all hover:border-neutral-200/80 hover:bg-neutral-100 hover:text-neutral-900 hover:underline sm:px-3 dark:text-neutral-400 dark:hover:border-neutral-700/60 dark:hover:bg-neutral-800 dark:hover:text-white"
+            title="저장된 템플릿 목록 관리 (CRUD & JSON)"
           >
-            <FolderOpen className="h-3.5 w-3.5 text-emerald-500" />
-            <span>템플릿 보관함</span>
+            <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 transition-colors group-hover:bg-emerald-100 dark:bg-emerald-950/50 dark:text-emerald-400 dark:group-hover:bg-emerald-900/60">
+              <FolderOpen className="h-3.5 w-3.5" />
+            </span>
+            <span className="hidden md:inline">템플릿 보관함</span>
           </motion.button>
 
+          {/* 예시 갤러리 */}
           <motion.button
             type="button"
-            whileHover={{ y: -1 }}
             whileTap={{ scale: 0.96 }}
             onClick={onOpenGalleryModal}
-            className="flex cursor-pointer items-center gap-1.5 rounded-xl px-3 py-1.5 text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 hover:underline dark:text-neutral-400 dark:hover:bg-neutral-800/70 dark:hover:text-white"
+            className="group flex cursor-pointer items-center gap-1.5 rounded-xl border border-transparent px-2.5 py-1.5 text-neutral-600 transition-all hover:border-neutral-200/80 hover:bg-neutral-100 hover:text-neutral-900 hover:underline sm:px-3 dark:text-neutral-400 dark:hover:border-neutral-700/60 dark:hover:bg-neutral-800 dark:hover:text-white"
+            title="1080p 고화질 예시 갤러리"
           >
-            <ImageIcon className="h-3.5 w-3.5 text-purple-500" />
-            <span>예시 갤러리</span>
+            <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-purple-50 text-purple-600 transition-colors group-hover:bg-purple-100 dark:bg-purple-950/50 dark:text-purple-400 dark:group-hover:bg-purple-900/60">
+              <ImageIcon className="h-3.5 w-3.5" />
+            </span>
+            <span className="hidden md:inline">예시 갤러리</span>
           </motion.button>
         </nav>
 
-        {/* Right Utility Buttons */}
+        {/* 우측 유틸리티 버튼 */}
         <div className="flex items-center gap-1.5 sm:gap-2">
-          {/* Quick Reset */}
+          {/* 빠른 초기화 */}
           <motion.button
             type="button"
             whileHover={{ scale: 1.05 }}
@@ -103,7 +119,7 @@ export const Header: React.FC<HeaderProps> = ({
             <RotateCcw className="h-4 w-4" />
           </motion.button>
 
-          {/* Dark / Light Toggle */}
+          {/* 다크 / 라이트 모드 토글 */}
           <motion.button
             type="button"
             whileHover={{ scale: 1.05 }}

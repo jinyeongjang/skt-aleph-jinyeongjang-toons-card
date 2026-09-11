@@ -59,6 +59,7 @@ export interface TextLayer {
   fontFamily: string;
   isBold: boolean;
   shadow: boolean;
+  opacity?: number; // 0 to 100 (%)
 }
 
 export type ImageFitMode = 'cover' | 'contain' | 'fill';
@@ -69,6 +70,7 @@ export interface CardTemplate {
   aspectRatio: AspectRatio;
   imageUrl: string;
   imageFit: ImageFitMode;
+  imageOpacity?: number; // 0 to 100 (%)
   backgroundColor: string;
   textLayers: TextLayer[];
   createdAt: number;
