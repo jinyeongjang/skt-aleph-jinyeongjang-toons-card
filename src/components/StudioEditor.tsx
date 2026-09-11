@@ -20,6 +20,7 @@ import {
   Sparkles,
   Square,
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface StudioEditorProps {
   currentTemplate: CardTemplate;
@@ -253,51 +254,68 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-4">
-      {/* 알림 및 오류 배너 (T03-C09, T03-C10) */}
-      {fileError && (
-        <div
-          role="alert"
-          className="animate-in fade-in slide-in-from-top-2 flex items-start gap-3 rounded-xl border border-rose-300 bg-rose-50/90 p-4 text-sm text-rose-900 shadow-sm backdrop-blur dark:border-rose-900/60 dark:bg-rose-950/70 dark:text-rose-200"
-        >
-          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-rose-600 dark:text-rose-400" />
-          <div className="flex-1">
-            <p className="font-semibold">지원하지 않는 파일 형식</p>
-            <p className="mt-0.5 text-xs text-rose-800 dark:text-rose-300">{fileError.message}</p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setFileError(null)}
-            className="cursor-pointer text-xs font-semibold underline hover:text-rose-700"
+      {/* 알림 및 오류 배너 */}
+      <AnimatePresence>
+        {fileError && (
+          <motion.div
+            key="file-error"
+            role="alert"
+            initial={{ opacity: 0, y: -8, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 'auto' }}
+            exit={{ opacity: 0, y: -8, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="flex items-start gap-3 rounded-xl border border-rose-300 bg-rose-50 p-4 text-sm text-rose-900 shadow-sm dark:border-rose-900/60 dark:bg-rose-950 dark:text-rose-200"
           >
-            닫기
-          </button>
-        </div>
-      )}
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-rose-600 dark:text-rose-400" />
+            <div className="flex-1">
+              <p className="font-semibold">지원하지 않는 파일 형식</p>
+              <p className="mt-0.5 text-xs text-rose-800 dark:text-rose-300">{fileError.message}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setFileError(null)}
+              className="cursor-pointer text-xs font-semibold underline hover:text-rose-700"
+            >
+              닫기
+            </button>
+          </motion.div>
+        )}
 
-      {fileSuccess && (
-        <div
-          role="status"
-          className="flex items-center gap-2 rounded-xl border border-emerald-300 bg-emerald-50/90 p-3 text-xs text-emerald-900 shadow-sm dark:border-emerald-900/60 dark:bg-emerald-950/70 dark:text-emerald-200"
-        >
-          <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-          <span>{fileSuccess}</span>
-        </div>
-      )}
+        {fileSuccess && (
+          <motion.div
+            key="file-success"
+            role="status"
+            initial={{ opacity: 0, y: -8, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 'auto' }}
+            exit={{ opacity: 0, y: -8, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="flex items-center gap-2 rounded-xl border border-emerald-300 bg-emerald-50/90 p-3 text-xs text-emerald-900 shadow-sm dark:border-emerald-900/60 dark:bg-emerald-950/70 dark:text-emerald-200"
+          >
+            <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            <span>{fileSuccess}</span>
+          </motion.div>
+        )}
 
-      {saveToast && (
-        <div
-          role="status"
-          className="flex items-center gap-2 rounded-xl border border-sky-300 bg-sky-50/90 p-3 text-xs text-sky-900 shadow-sm dark:border-sky-900/60 dark:bg-sky-950/70 dark:text-sky-200"
-        >
-          <Bookmark className="h-4 w-4 text-sky-600 dark:text-sky-400" />
-          <span>{saveToast}</span>
-        </div>
-      )}
+        {saveToast && (
+          <motion.div
+            key="save-toast"
+            role="status"
+            initial={{ opacity: 0, y: -8, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 'auto' }}
+            exit={{ opacity: 0, y: -8, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="flex items-center gap-2 rounded-xl border border-sky-300 bg-sky-50/90 p-3 text-xs text-sky-900 shadow-sm dark:border-sky-900/60 dark:bg-sky-950/70 dark:text-sky-200"
+          >
+            <Bookmark className="h-4 w-4 text-sky-600 dark:text-sky-400" />
+            <span>{saveToast}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* 상단 컨트롤 바: 화면비 선택 & 빠른 액션 */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-neutral-200/80 bg-white/90 p-3.5 shadow-sm backdrop-blur-md dark:border-neutral-800 dark:bg-neutral-900/90">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-neutral-200/80 bg-white p-3.5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
         {/* 화면비 선택 버튼 그룹 */}
-        <div className="flex items-center gap-1.5 rounded-xl bg-neutral-100 p-1 dark:bg-neutral-800/80">
+        <div className="flex items-center gap-1 rounded-xl bg-neutral-100 p-1 dark:bg-neutral-800/80">
           {(['1:1', '4:5', '9:16'] as AspectRatio[]).map((ratio) => {
             const rMeta = ASPECT_RATIOS[ratio];
             const isActive = currentTemplate.aspectRatio === ratio;
@@ -306,14 +324,17 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
                 key={ratio}
                 type="button"
                 onClick={() => handleRatioChange(ratio)}
-                className={`flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
-                  isActive
-                    ? 'bg-white text-neutral-950 shadow-xs ring-1 ring-neutral-200/80 dark:bg-neutral-700 dark:text-white dark:ring-neutral-600'
-                    : 'text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
-                }`}
+                className="relative flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors active:scale-95"
               >
+                {isActive && (
+                  <motion.span
+                    layoutId="studio-aspect-pill"
+                    transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+                    className="absolute inset-0 rounded-lg bg-white shadow-xs ring-1 ring-neutral-200/80 dark:bg-neutral-700 dark:ring-neutral-600"
+                  />
+                )}
                 <span
-                  className={`inline-block rounded-xs border transition-colors ${
+                  className={`relative z-10 inline-block rounded-xs border transition-colors ${
                     isActive
                       ? 'border-indigo-500 bg-indigo-500/20 dark:border-sky-400 dark:bg-sky-400/20'
                       : 'border-neutral-400/80 dark:border-neutral-500'
@@ -323,7 +344,15 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
                     height: ratio === '9:16' ? '12px' : ratio === '4:5' ? '11px' : '10px',
                   }}
                 />
-                <span>{rMeta.label}</span>
+                <span
+                  className={`relative z-10 transition-colors ${
+                    isActive
+                      ? 'text-neutral-950 dark:text-white'
+                      : 'text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
+                  }`}
+                >
+                  {rMeta.label}
+                </span>
               </button>
             );
           })}
@@ -373,7 +402,7 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
       {/* 메인 에디터 그리드 (좌측: 조작 패널 / 우측: 실시간 캔버스) */}
       <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-12">
         {/* ================= 좌측: 편집 조작 패널 ================= */}
-        <div className="custom-scrollbar max-h-[calc(100vh-160px)] space-y-3.5 overflow-y-auto rounded-2xl border border-neutral-200/80 bg-white/90 p-4 pr-2.5 shadow-sm backdrop-blur-md lg:col-span-5 dark:border-neutral-800 dark:bg-neutral-900/90">
+        <div className="custom-scrollbar max-h-[calc(100vh-160px)] space-y-3.5 overflow-y-auto rounded-2xl border border-neutral-200/80 bg-white p-4 pr-2.5 shadow-sm lg:col-span-5 dark:border-neutral-800 dark:bg-neutral-900">
           {/* 섹션 1: 이미지 편집 도구 */}
           <div className="space-y-2.5 rounded-xl border border-neutral-200/70 bg-neutral-50/70 p-3 dark:border-neutral-800/80 dark:bg-neutral-800/40">
             <div className="flex items-center justify-between">
@@ -448,7 +477,7 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
                         alt={p.name}
                         className="h-full w-full object-cover opacity-85 transition-transform duration-300 group-hover:scale-105 group-hover:opacity-100"
                       />
-                      <span className="absolute inset-x-0 bottom-0 truncate bg-neutral-950/75 px-1 py-0.5 text-[9px] font-medium text-white backdrop-blur-[2px]">
+                      <span className="absolute inset-x-0 bottom-0 truncate bg-neutral-950/80 px-1 py-0.5 text-[9px] font-medium text-white">
                         {p.aspectRatio}
                       </span>
                     </button>
@@ -490,20 +519,31 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
                     key={l.id}
                     type="button"
                     onClick={() => setSelectedLayerId(l.id)}
-                    className={`flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-                      isCurrent
-                        ? 'bg-white text-indigo-700 shadow-xs dark:bg-neutral-900 dark:text-indigo-300'
-                        : 'text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
-                    }`}
+                    className="relative flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors"
                   >
-                    <span>문구 {index + 1}</span>
+                    {isCurrent && (
+                      <motion.span
+                        layoutId="studio-layer-pill"
+                        transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+                        className="absolute inset-0 rounded-lg bg-white shadow-xs dark:bg-neutral-900"
+                      />
+                    )}
+                    <span
+                      className={`relative z-10 transition-colors ${
+                        isCurrent
+                          ? 'text-indigo-700 dark:text-indigo-300'
+                          : 'text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
+                      }`}
+                    >
+                      문구 {index + 1}
+                    </span>
                     {currentTemplate.textLayers.length > 1 && (
                       <span
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDeleteTextLayer(l.id);
                         }}
-                        className="ml-0.5 rounded-full p-0.5 text-neutral-400 hover:bg-neutral-200 hover:text-rose-600 dark:hover:bg-neutral-700 dark:hover:text-rose-400"
+                        className="relative z-10 ml-0.5 rounded-full p-0.5 text-neutral-400 hover:bg-neutral-200 hover:text-rose-600 dark:hover:bg-neutral-700 dark:hover:text-rose-400"
                         title="레이어 삭제"
                       >
                         ×
@@ -770,7 +810,7 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
         </div>
 
         {/* ================= 우측: 실시간 캔버스 미리보기 ================= */}
-        <div className="flex min-h-[480px] flex-col items-center justify-center rounded-2xl border border-neutral-200/80 bg-neutral-900/[0.03] p-6 backdrop-blur-md lg:col-span-7 dark:border-neutral-800 dark:bg-neutral-900/40">
+        <div className="flex min-h-[480px] flex-col items-center justify-center rounded-2xl border border-neutral-200/80 bg-neutral-900/[0.03] p-6 lg:col-span-7 dark:border-neutral-800 dark:bg-neutral-900/40">
           {/* 상단 메타 바 */}
           <div className="mb-3 flex w-full max-w-md items-center justify-between text-xs text-neutral-600 dark:text-neutral-400">
             <div className="flex items-center gap-2 rounded-full border border-neutral-200/80 bg-white/80 px-3 py-1 shadow-xs dark:border-neutral-800 dark:bg-neutral-800/80">
@@ -782,8 +822,10 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
             </span>
           </div>
 
-          {/* 메인 캔버스 뷰포트 (체커보드 투명 패턴 배경 + 그림자 베젤) */}
-          <div
+          {/* 메인 캔버스 뷰포트 (체커보드 투명 패턴 배경 + 그림자 베젤 + 부드러운 비율 전환 애니메이션) */}
+          <motion.div
+            layout
+            transition={{ type: 'spring', stiffness: 300, damping: 28 }}
             className="bg-canvas-pattern relative flex items-center justify-center overflow-hidden rounded-2xl border border-neutral-800/20 shadow-[0_20px_50px_rgba(0,0,0,0.25)] ring-1 ring-black/10 dark:border-neutral-700/80 dark:ring-white/10"
             style={{
               width: '100%',
@@ -806,7 +848,7 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
               className="pointer-events-none h-full w-full object-contain select-none"
               title="실시간 캔버스 미리보기"
             />
-          </div>
+          </motion.div>
 
           {/* 하단 캔버스 안내 설명 */}
           <div className="mt-4 flex flex-wrap items-center justify-center gap-4 text-[11px] text-neutral-500 dark:text-neutral-400">

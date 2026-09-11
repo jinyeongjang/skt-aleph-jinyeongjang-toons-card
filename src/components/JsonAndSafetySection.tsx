@@ -138,7 +138,7 @@ export const JsonAndSafetySection: React.FC<JsonAndSafetySectionProps> = ({ onAp
   return (
     <section id="safety-check" className="mx-auto w-full max-w-7xl space-y-6 pt-4 pb-12">
       {/* 타이틀 헤더 */}
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-neutral-200/80 bg-white/80 p-5 backdrop-blur-md dark:border-neutral-800 dark:bg-neutral-900/80">
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-neutral-200/80 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
         <div>
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-500/10 text-purple-500">
@@ -159,7 +159,7 @@ export const JsonAndSafetySection: React.FC<JsonAndSafetySectionProps> = ({ onAp
       </div>
 
       {/* ================= 1. JSON 3종 검증 시험기 (T03-C22, T03-C23, T03-C24) ================= */}
-      <div className="space-y-4 rounded-2xl border border-neutral-200/80 bg-white/90 p-5 shadow-sm backdrop-blur-md dark:border-neutral-800 dark:bg-neutral-900/90">
+      <div className="space-y-4 rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-200/80 pb-3 dark:border-neutral-800">
           <div>
             <h3 className="flex items-center gap-2 text-sm font-bold text-neutral-900 dark:text-white">
@@ -264,7 +264,7 @@ export const JsonAndSafetySection: React.FC<JsonAndSafetySectionProps> = ({ onAp
       </div>
 
       {/* ================= 2. 서로 다른 완성 이미지 3개 쇼케이스 (T03-C25 ~ T03-C28) ================= */}
-      <div className="space-y-4 rounded-2xl border border-neutral-200/80 bg-white/90 p-5 shadow-sm backdrop-blur-md dark:border-neutral-800 dark:bg-neutral-900/90">
+      <div className="space-y-4 rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
         <div className="flex items-center justify-between border-b border-neutral-200/80 pb-3 dark:border-neutral-800">
           <div>
             <h3 className="flex items-center gap-2 text-sm font-bold text-neutral-900 dark:text-white">
@@ -350,7 +350,7 @@ export const JsonAndSafetySection: React.FC<JsonAndSafetySectionProps> = ({ onAp
       </div>
 
       {/* ================= 3. 공개 안전 및 개인정보·비밀값 0건 감사 (T03-C28, T03-C29, T03-C30) ================= */}
-      <div className="space-y-3 rounded-2xl border border-neutral-200/80 bg-white/90 p-5 shadow-sm backdrop-blur-md dark:border-neutral-800 dark:bg-neutral-900/90">
+      <div className="space-y-3 rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
         <h3 className="flex items-center gap-2 text-sm font-bold text-neutral-900 dark:text-white">
           <Lock className="h-4 w-4 text-emerald-500" />
           <span>공개 안전 및 보안 전수 감사 (T03-C28 ~ T03-C30)</span>
@@ -390,7 +390,7 @@ export const JsonAndSafetySection: React.FC<JsonAndSafetySectionProps> = ({ onAp
       </div>
 
       {/* ================= 4. 공식 제출 규격 양식 (T03-C31, T03-C32) ================= */}
-      <div className="space-y-4 rounded-2xl border border-neutral-200/80 bg-white/90 p-5 shadow-sm backdrop-blur-md dark:border-neutral-800 dark:bg-neutral-900/90">
+      <div className="space-y-4 rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
         <h3 className="flex items-center gap-2 text-sm font-bold text-neutral-900 dark:text-white">
           <FileText className="h-4 w-4 text-sky-500" />
           <span>공식 제출문 양식 (T03-C31, T03-C32)</span>

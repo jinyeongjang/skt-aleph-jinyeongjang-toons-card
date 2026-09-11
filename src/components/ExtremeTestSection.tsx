@@ -113,7 +113,7 @@ export const ExtremeTestSection: React.FC<ExtremeTestSectionProps> = ({ currentT
   return (
     <section id="extreme-tests" className="mx-auto w-full max-w-7xl space-y-6 pt-4">
       {/* 타이틀 헤더 */}
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-neutral-200/80 bg-white/80 p-5 backdrop-blur-md dark:border-neutral-800 dark:bg-neutral-900/80">
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-neutral-200/80 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
         <div>
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/10 text-amber-500">
@@ -154,7 +154,7 @@ export const ExtremeTestSection: React.FC<ExtremeTestSectionProps> = ({ currentT
       )}
 
       {/* ================= T03-C15: 대표 결함 수정 전후 (Before vs After) 대조 뷰어 ================= */}
-      <div className="space-y-4 rounded-2xl border border-neutral-200/80 bg-white/90 p-5 shadow-sm backdrop-blur-md dark:border-neutral-800 dark:bg-neutral-900/90">
+      <div className="space-y-4 rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-200/80 pb-3 dark:border-neutral-800">
           <div>
             <h3 className="flex items-center gap-2 text-sm font-bold text-neutral-900 dark:text-white">
@@ -213,7 +213,7 @@ export const ExtremeTestSection: React.FC<ExtremeTestSectionProps> = ({ currentT
       </div>
 
       {/* ================= 12건 검사표 전체 테이블 (T03-C14) ================= */}
-      <div className="space-y-4 rounded-2xl border border-neutral-200/80 bg-white/90 p-5 shadow-sm backdrop-blur-md dark:border-neutral-800 dark:bg-neutral-900/90">
+      <div className="space-y-4 rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-bold text-neutral-900 dark:text-white">
             극단 입력 12건 전수 검사 기록표 (T03-C14)
