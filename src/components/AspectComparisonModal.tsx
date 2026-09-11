@@ -105,13 +105,13 @@ export const AspectComparisonModal: React.FC<AspectComparisonModalProps> = ({ is
         {/* 나란히 비교 그리드 (좌: 브라우저 미리보기 / 우: 내보낸 파일) */}
         <div className="mt-5 grid grid-cols-1 items-center gap-6 md:grid-cols-2">
           {/* 1. 화면 미리보기 뷰포트 */}
-          <div className="flex flex-col items-center rounded-xl border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-800 dark:bg-neutral-950/50">
+          <div className="flex flex-col items-center rounded-xl border border-neutral-200/80 bg-neutral-50/80 p-4 shadow-xs dark:border-neutral-800 dark:bg-neutral-950/50">
             <div className="mb-3 flex items-center gap-1.5 text-xs font-bold text-neutral-700 dark:text-neutral-300">
               <Eye className="h-4 w-4 text-sky-500" />
               <span>[좌측] 브라우저 화면 미리보기</span>
             </div>
             <div
-              className="relative flex items-center justify-center overflow-hidden rounded-lg border border-neutral-700 bg-neutral-900 shadow-md"
+              className="bg-canvas-pattern relative flex items-center justify-center overflow-hidden rounded-xl border border-neutral-700/80 shadow-lg ring-1 ring-black/10 dark:ring-white/10"
               style={{
                 width: '100%',
                 maxWidth: activeRatio === '9:16' ? '220px' : activeRatio === '4:5' ? '250px' : '280px',
@@ -120,17 +120,17 @@ export const AspectComparisonModal: React.FC<AspectComparisonModalProps> = ({ is
             >
               <canvas ref={previewCanvasRef} className="h-full w-full object-contain" />
             </div>
-            <p className="mt-2 text-[11px] text-neutral-500">실시간 Canvas 2D 렌더링 뷰</p>
+            <p className="mt-2 text-[11px] font-medium text-neutral-500">실시간 Canvas 2D 렌더링 뷰</p>
           </div>
 
           {/* 2. 내려받은 파일 렌더링 결과 */}
-          <div className="flex flex-col items-center rounded-xl border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-800 dark:bg-neutral-950/50">
+          <div className="flex flex-col items-center rounded-xl border border-neutral-200/80 bg-neutral-50/80 p-4 shadow-xs dark:border-neutral-800 dark:bg-neutral-950/50">
             <div className="mb-3 flex items-center gap-1.5 text-xs font-bold text-neutral-700 dark:text-neutral-300">
               <FileImage className="h-4 w-4 text-emerald-500" />
               <span>[우측] 내려받은 실제 파일 (PNG 1080p)</span>
             </div>
             <div
-              className="relative flex items-center justify-center overflow-hidden rounded-lg border border-neutral-700 bg-neutral-900 shadow-md"
+              className="bg-canvas-pattern relative flex items-center justify-center overflow-hidden rounded-xl border border-neutral-700/80 shadow-lg ring-1 ring-black/10 dark:ring-white/10"
               style={{
                 width: '100%',
                 maxWidth: activeRatio === '9:16' ? '220px' : activeRatio === '4:5' ? '250px' : '280px',
@@ -143,12 +143,12 @@ export const AspectComparisonModal: React.FC<AspectComparisonModalProps> = ({ is
                 <canvas ref={fileCanvasRef} className="h-full w-full object-contain" />
               )}
             </div>
-            <p className="mt-2 text-[11px] text-neutral-500">1080p 고해상도 Blob 내보내기 결과</p>
+            <p className="mt-2 text-[11px] font-medium text-neutral-500">1080p 고해상도 Blob 내보내기 결과</p>
           </div>
         </div>
 
         {/* 일치 검증 체크리스트 및 원리 설명 */}
-        <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 text-xs text-emerald-950 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-200">
+        <div className="mt-6 rounded-xl border border-emerald-200/80 bg-emerald-50/80 p-4 text-xs text-emerald-950 shadow-xs dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-200">
           <h4 className="mb-2 flex items-center gap-1.5 font-bold">
             <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
             <span>화면 및 내보내기 파일 일치 렌더링 원리</span>
@@ -172,7 +172,7 @@ export const AspectComparisonModal: React.FC<AspectComparisonModalProps> = ({ is
             <button
               type="button"
               onClick={() => downloadCanvasImage(testTemplate, 'png')}
-              className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl bg-neutral-900 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
+              className="hover-lift active-press inline-flex cursor-pointer items-center gap-1.5 rounded-xl bg-neutral-900 px-4 py-2 text-xs font-bold text-white shadow-xs transition-all hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
             >
               <Download className="h-4 w-4" />
               <span>{activeRatio} PNG 다운로드</span>
@@ -180,7 +180,7 @@ export const AspectComparisonModal: React.FC<AspectComparisonModalProps> = ({ is
             <button
               type="button"
               onClick={onClose}
-              className="cursor-pointer rounded-xl border border-neutral-300 px-4 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+              className="hover-lift active-press cursor-pointer rounded-xl border border-neutral-300/80 bg-white px-4 py-2 text-xs font-semibold text-neutral-700 shadow-xs transition-all hover:border-neutral-400 hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
             >
               닫기
             </button>

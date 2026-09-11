@@ -24,12 +24,12 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Logo & Brand */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2.5 rounded-lg p-1">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-linear-to-br from-indigo-500 via-sky-500 to-emerald-400 text-white shadow-sm">
+            <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 via-sky-500 to-emerald-400 text-white shadow-md shadow-indigo-500/20">
               <Sparkles className="h-5 w-5" />
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="text-base font-bold tracking-tight text-neutral-900 dark:text-white">
+                <span className="text-sm font-extrabold tracking-tight text-neutral-900 sm:text-base dark:text-white">
                   ToonsCard jinyeongjang Studio
                 </span>
               </div>
@@ -42,15 +42,15 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Navigation Bar */}
         <nav className="hidden items-center gap-1.5 text-xs font-medium lg:flex">
-          <div className="flex items-center gap-1.5 rounded-lg bg-indigo-50/80 px-3 py-1.5 font-semibold text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300">
-            <Sliders className="h-3.5 w-3.5 text-indigo-500" />
+          <div className="flex items-center gap-1.5 rounded-xl bg-neutral-900 px-3.5 py-1.5 font-bold text-white shadow-xs dark:bg-white dark:text-neutral-950">
+            <Sliders className="h-3.5 w-3.5 text-indigo-400 dark:text-indigo-600" />
             <span>편집기</span>
           </div>
 
           <button
             type="button"
             onClick={onOpenAspectModal}
-            className="flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 hover:underline dark:text-neutral-400 dark:hover:bg-neutral-800/60 dark:hover:text-white"
+            className="flex cursor-pointer items-center gap-1.5 rounded-xl px-3 py-1.5 text-neutral-600 transition-all hover:bg-neutral-100 hover:text-neutral-900 hover:underline active:scale-95 dark:text-neutral-400 dark:hover:bg-neutral-800/70 dark:hover:text-white"
           >
             <Columns className="h-3.5 w-3.5 text-sky-500" />
             <span>화면비 비교</span>
@@ -59,7 +59,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             type="button"
             onClick={onOpenTemplateModal}
-            className="flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 hover:underline dark:text-neutral-400 dark:hover:bg-neutral-800/60 dark:hover:text-white"
+            className="flex cursor-pointer items-center gap-1.5 rounded-xl px-3 py-1.5 text-neutral-600 transition-all hover:bg-neutral-100 hover:text-neutral-900 hover:underline active:scale-95 dark:text-neutral-400 dark:hover:bg-neutral-800/70 dark:hover:text-white"
           >
             <FolderOpen className="h-3.5 w-3.5 text-emerald-500" />
             <span>템플릿 보관함</span>
@@ -68,7 +68,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             type="button"
             onClick={onOpenGalleryModal}
-            className="flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 hover:underline dark:text-neutral-400 dark:hover:bg-neutral-800/60 dark:hover:text-white"
+            className="flex cursor-pointer items-center gap-1.5 rounded-xl px-3 py-1.5 text-neutral-600 transition-all hover:bg-neutral-100 hover:text-neutral-900 hover:underline active:scale-95 dark:text-neutral-400 dark:hover:bg-neutral-800/70 dark:hover:text-white"
           >
             <ImageIcon className="h-3.5 w-3.5 text-purple-500" />
             <span>예시 갤러리</span>
@@ -81,7 +81,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             type="button"
             onClick={onResetToDefault}
-            className="cursor-pointer rounded-lg p-2 text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white"
+            className="cursor-pointer rounded-xl border border-neutral-200/80 bg-neutral-50/80 p-2 text-neutral-600 shadow-xs transition-all hover:border-neutral-300 hover:bg-white hover:text-neutral-900 active:scale-90 dark:border-neutral-800 dark:bg-neutral-800/60 dark:text-neutral-400 dark:hover:border-neutral-700 dark:hover:bg-neutral-700/80 dark:hover:text-white"
             title="기본 템플릿으로 초기화"
             aria-label="기본 템플릿으로 초기화"
           >
@@ -92,7 +92,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             type="button"
             onClick={onToggleDark}
-            className="cursor-pointer rounded-lg p-2 text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white"
+            className="cursor-pointer rounded-xl border border-neutral-200/80 bg-neutral-50/80 p-2 text-neutral-600 shadow-xs transition-all hover:border-neutral-300 hover:bg-white hover:text-neutral-900 active:scale-90 dark:border-neutral-800 dark:bg-neutral-800/60 dark:text-neutral-400 dark:hover:border-neutral-700 dark:hover:bg-neutral-700/80 dark:hover:text-white"
             title={isDark ? '라이트 모드로 전환' : '다크 모드로 전환'}
             aria-label={isDark ? '라이트 모드로 전환' : '다크 모드로 전환'}
           >

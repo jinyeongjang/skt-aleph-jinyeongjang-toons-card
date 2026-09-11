@@ -50,17 +50,17 @@ export const GalleryModal: React.FC<GalleryModalProps> = ({ isOpen, onClose, onL
           {FINISHED_WORKS.map((work) => (
             <div
               key={work.id}
-              className="flex flex-col justify-between overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm transition-all hover:border-purple-400 dark:border-neutral-800 dark:bg-neutral-800/60 dark:hover:border-purple-500"
+              className="hover-lift flex flex-col justify-between overflow-hidden rounded-2xl border border-neutral-200/80 bg-white shadow-xs transition-all hover:border-purple-400 dark:border-neutral-800 dark:bg-neutral-800/60 dark:hover:border-purple-500"
             >
               <div>
                 {/* 미리보기 이미지 */}
-                <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-neutral-950 p-2">
+                <div className="bg-canvas-pattern relative flex aspect-square items-center justify-center overflow-hidden p-3">
                   <img
                     src={work.previewUrl}
                     alt={work.title}
-                    className="max-h-full max-w-full rounded-lg object-contain shadow-md"
+                    className="max-h-full max-w-full rounded-xl object-contain shadow-lg"
                   />
-                  <span className="absolute top-3 left-3 rounded-md bg-neutral-950/80 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur">
+                  <span className="absolute top-3 left-3 rounded-lg bg-neutral-950/80 px-2 py-0.5 text-[10px] font-bold text-white shadow-xs backdrop-blur-md">
                     {work.aspectRatio}
                   </span>
                 </div>
@@ -68,15 +68,17 @@ export const GalleryModal: React.FC<GalleryModalProps> = ({ isOpen, onClose, onL
                 {/* 정보 */}
                 <div className="p-4">
                   <h3 className="text-sm font-bold text-neutral-900 dark:text-white">{work.title}</h3>
-                  <p className="mt-1 line-clamp-2 text-xs text-neutral-500 dark:text-neutral-400">{work.description}</p>
+                  <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-neutral-500 dark:text-neutral-400">
+                    {work.description}
+                  </p>
 
-                  <div className="mt-3 space-y-1 rounded-lg bg-neutral-50 p-2.5 text-[11px] text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">
-                    <div className="flex items-center gap-1 font-medium">
+                  <div className="mt-3 space-y-1 rounded-xl bg-neutral-50/80 p-2.5 text-[11px] text-neutral-600 dark:bg-neutral-800/80 dark:text-neutral-400">
+                    <div className="flex items-center gap-1 font-semibold text-neutral-800 dark:text-neutral-200">
                       <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
                       <span>{work.isSelfCreated ? '직접 창작 카드' : '오픈 라이선스 활용'}</span>
                     </div>
-                    <p className="truncate">출처: {work.sourceUrl}</p>
-                    <p className="truncate">라이선스: {work.licenseInfo}</p>
+                    <p className="truncate text-neutral-500">출처: {work.sourceUrl}</p>
+                    <p className="truncate text-neutral-500">라이선스: {work.licenseInfo}</p>
                   </div>
                 </div>
               </div>
@@ -89,7 +91,7 @@ export const GalleryModal: React.FC<GalleryModalProps> = ({ isOpen, onClose, onL
                     onLoadTemplate(work.template);
                     onClose();
                   }}
-                  className="inline-flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-purple-600 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-purple-500"
+                  className="hover-lift active-press inline-flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-purple-600 px-3.5 py-2 text-xs font-bold text-white shadow-xs transition-all hover:bg-purple-500"
                 >
                   <ArrowRight className="h-3.5 w-3.5" />
                   <span>편집기로 불러오기</span>
@@ -97,7 +99,7 @@ export const GalleryModal: React.FC<GalleryModalProps> = ({ isOpen, onClose, onL
                 <button
                   type="button"
                   onClick={() => downloadCanvasImage(work.template, 'png')}
-                  className="cursor-pointer rounded-xl border border-neutral-300 p-2 text-neutral-700 transition-colors hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                  className="hover-lift active-press cursor-pointer rounded-xl border border-neutral-300/80 p-2 text-neutral-700 shadow-xs transition-all hover:border-neutral-400 hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
                   title="PNG 다운로드"
                 >
                   <Download className="h-4 w-4" />
@@ -112,7 +114,7 @@ export const GalleryModal: React.FC<GalleryModalProps> = ({ isOpen, onClose, onL
           <button
             type="button"
             onClick={onClose}
-            className="cursor-pointer rounded-xl border border-neutral-300 px-4 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+            className="hover-lift active-press cursor-pointer rounded-xl border border-neutral-300/80 bg-white px-4 py-2 text-xs font-semibold text-neutral-700 shadow-xs transition-all hover:border-neutral-400 hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
           >
             닫기
           </button>

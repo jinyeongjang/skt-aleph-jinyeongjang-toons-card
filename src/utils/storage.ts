@@ -37,7 +37,7 @@ export const DEFAULT_BUILTIN_TEMPLATES: CardTemplate[] = [
       },
       {
         id: 'layer-bot-1',
-        text: '건드리지 마시오. 배포 완료됨 🔥',
+        text: '건드리지 마세요. 배포 완료되었어요. 🔥',
         fontSize: 48,
         color: '#facc15',
         strokeColor: '#000000',
