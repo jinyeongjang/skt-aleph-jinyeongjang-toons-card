@@ -1,0 +1,528 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    font-family:
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
+      Roboto,
+      Oxygen,
+      Ubuntu,
+      Cantarell,
+      'Open Sans',
+      'Helvetica Neue',
+      sans-serif;
+  }
+
+  html.dark {
+    color-scheme: dark;
+    background-color: #0a0a0a;
+    color: #f5f5f5;
+  }
+}
+
+/* 테마 전환 부드러운 트랜지션 (고성능: generic div 제외하여 60FPS 렌더링 부하 제거) */
+html,
+body,
+header,
+main,
+footer,
+section,
+article,
+aside,
+button,
+a,
+.card-surface {
+  transition-property: background-color, border-color, color;
+  transition-duration: 200ms;
+}
+
+/* Responsive Track Height for 1366x768 & 1920x1080 Viewport Standards (T02-C10, T02-C11) */
+.racing-track-container {
+  height: 270px;
+}
+@media (min-height: 720px) {
+  .racing-track-container {
+    height: 290px;
+  }
+}
+@media (min-height: 840px) {
+  .racing-track-container {
+    height: 350px;
+  }
+}
+@media (min-height: 960px) {
+  .racing-track-container {
+    height: 390px;
+  }
+}
+
+/* 애니메이션 비활성화 (Reduce Motion) */
+.reduce-motion *,
+html.reduce-motion * {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+
+/* 다크 모드 종합 스타일 규격 */
+html.dark .bg-white {
+  background-color: #171717;
+}
+
+html.dark .bg-white\/70,
+html.dark .bg-white\/75,
+html.dark .bg-white\/80,
+html.dark .bg-white\/90 {
+  background-color: rgba(23, 23, 23, 0.88);
+}
+
+html.dark .bg-neutral-50,
+html.dark .bg-neutral-50\/40,
+html.dark .bg-neutral-50\/50,
+html.dark .bg-neutral-50\/60 {
+  background-color: #121212;
+}
+
+html.dark .bg-neutral-100 {
+  background-color: #242424;
+}
+
+html.dark .bg-neutral-200,
+html.dark .bg-neutral-200\/70 {
+  background-color: #2e2e2e;
+}
+
+html.dark .text-neutral-900 {
+  color: #fafafa;
+}
+
+html.dark .text-neutral-800 {
+  color: #f0f0f0;
+}
+
+html.dark .text-neutral-700 {
+  color: #d4d4d4;
+}
+
+html.dark .text-neutral-600 {
+  color: #a3a3a3;
+}
+
+html.dark .text-neutral-500 {
+  color: #888888;
+}
+
+html.dark .border-neutral-200,
+html.dark .border-neutral-200\/70,
+html.dark .border-neutral-200\/80,
+html.dark .border-neutral-200\/90,
+html.dark .border-neutral-100,
+html.dark .border-white\/80 {
+  border-color: #2a2a2a;
+}
+
+html.dark .hover\:bg-neutral-100:hover,
+html.dark .hover\:bg-neutral-50:hover {
+  background-color: #262626;
+}
+
+html.dark .hover\:border-neutral-300:hover {
+  border-color: #444444;
+}
+
+html.dark .selection\:bg-neutral-900::selection {
+  background-color: #f5f5f5;
+  color: #171717;
+}
+
+/* 다크 모드 메인 반전 강조 버튼 및 뱃지 */
+html.dark .bg-neutral-900 {
+  background-color: #f5f5f5;
+  color: #121212;
+}
+
+html.dark .bg-neutral-900:hover {
+  background-color: #e5e5e5;
+}
+
+html.dark .bg-neutral-900 .text-white,
+html.dark .bg-neutral-900 span,
+html.dark .bg-neutral-900 svg {
+  color: #121212;
+}
+
+/* ============================================================
+   3D Cyber Racing & Realistic Highway Perspective Animations
+   ============================================================ */
+
+/* 1. Perspective Road Dashed Divider Animation */
+@keyframes lane-divider-scroll {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -48;
+  }
+}
+
+.road-lane-animated {
+  animation: lane-divider-scroll var(--lane-scroll-duration, 0.28s) linear infinite;
+}
+
+.road-lane-animated-nitro {
+  animation: lane-divider-scroll var(--lane-scroll-duration-nitro, 0.12s) linear infinite;
+}
+
+/* 2. Rumble Strips / Curb Animation */
+@keyframes curb-stripe-scroll {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -32;
+  }
+}
+
+.curb-animated {
+  animation: curb-stripe-scroll var(--curb-scroll-duration, 0.24s) linear infinite;
+}
+
+.curb-animated-nitro {
+  animation: curb-stripe-scroll var(--curb-scroll-duration-nitro, 0.1s) linear infinite;
+}
+
+/* Drift Tire Slipstream & Skid Particles */
+@keyframes tire-skid-trail {
+  0% {
+    opacity: 0.9;
+    transform: scale(1) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.8) translateY(24px);
+  }
+}
+
+.tire-skid-particle {
+  animation: tire-skid-trail 0.3s ease-out forwards;
+}
+
+/* 3. Plasma Thruster Jet Flame */
+@keyframes jet-flame-flicker {
+  0%,
+  100% {
+    transform: scaleY(1) scaleX(1);
+    opacity: 0.95;
+  }
+  50% {
+    transform: scaleY(1.22) scaleX(0.92);
+    opacity: 1;
+  }
+}
+
+.thruster-flame {
+  animation: jet-flame-flicker 0.08s ease-in-out infinite alternate;
+  transform-origin: top center;
+}
+
+.thruster-flame-nitro {
+  animation: jet-flame-flicker 0.05s ease-in-out infinite alternate;
+  transform-origin: top center;
+}
+
+/* 4. Hovercraft / Cyber Racer Micro Hover Bobbing */
+@keyframes hover-bobbing {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-2.5px);
+  }
+}
+
+.hover-craft-bob {
+  animation: hover-bobbing 1.8s ease-in-out infinite;
+}
+
+/* 5. 3D Data Hologram Rotating Ring */
+@keyframes ring-spin-3d {
+  0% {
+    transform: rotateX(65deg) rotateZ(0deg);
+  }
+  100% {
+    transform: rotateX(65deg) rotateZ(360deg);
+  }
+}
+
+.spin-ring-3d {
+  animation: ring-spin-3d 3s linear infinite;
+}
+
+/* 6. Spikes / Firewall Barrier Warning Pulse */
+@keyframes spike-laser-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 4px rgba(244, 63, 94, 0.6));
+  }
+  50% {
+    transform: scale(1.08);
+    filter: drop-shadow(0 0 10px rgba(244, 63, 94, 0.95));
+  }
+}
+
+.spike-hazard-pulse {
+  animation: spike-laser-pulse 0.6s ease-in-out infinite;
+}
+
+/* 7. Speed Warp Streaks & Hyperspace Vector Streams */
+@keyframes warp-streak-left-wide {
+  0% {
+    transform: translate(0, 0) scale(0.15);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(-380px, 280px) scale(2.2);
+    opacity: 0;
+  }
+}
+
+@keyframes warp-streak-left-steep {
+  0% {
+    transform: translate(0, 0) scale(0.15);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.95;
+  }
+  100% {
+    transform: translate(-190px, 320px) scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes warp-streak-right-wide {
+  0% {
+    transform: translate(0, 0) scale(0.15);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(380px, 280px) scale(2.2);
+    opacity: 0;
+  }
+}
+
+@keyframes warp-streak-right-steep {
+  0% {
+    transform: translate(0, 0) scale(0.15);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.95;
+  }
+  100% {
+    transform: translate(190px, 320px) scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes warp-streak-mid-down {
+  0% {
+    transform: translate(0, 0) scaleY(0.2);
+    opacity: 0;
+  }
+  35% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(0, 360px) scaleY(2.8);
+    opacity: 0;
+  }
+}
+
+.warp-streak-diag-l1 {
+  animation: warp-streak-left-wide 0.28s linear infinite;
+}
+
+.warp-streak-diag-l2 {
+  animation: warp-streak-left-steep 0.22s linear infinite 0.08s;
+}
+
+.warp-streak-diag-r1 {
+  animation: warp-streak-right-wide 0.28s linear infinite 0.04s;
+}
+
+.warp-streak-diag-r2 {
+  animation: warp-streak-right-steep 0.22s linear infinite 0.12s;
+}
+
+.warp-streak-center-l {
+  animation: warp-streak-mid-down 0.18s linear infinite;
+}
+
+.warp-streak-center-r {
+  animation: warp-streak-mid-down 0.18s linear infinite 0.09s;
+}
+
+.warp-streak-l {
+  animation: warp-streak-left-wide 0.3s linear infinite;
+}
+
+.warp-streak-r {
+  animation: warp-streak-right-wide 0.3s linear infinite 0.1s;
+}
+
+/* 8. Spaceship Aerodynamic Wingtip Contrails & High-Speed Micro-Rumble */
+@keyframes slipstream-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scaleY(0.95) scaleX(1);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scaleY(1.15) scaleX(1.1);
+  }
+}
+
+.wingtip-slipstream {
+  animation: slipstream-pulse 0.12s ease-in-out infinite;
+  transform-origin: top center;
+}
+
+@keyframes high-speed-micro-rumble {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  25% {
+    transform: translateY(-0.8px) rotate(-0.3deg);
+  }
+  75% {
+    transform: translateY(0.8px) rotate(0.3deg);
+  }
+}
+
+.speed-rumble {
+  animation: high-speed-micro-rumble 0.045s linear infinite;
+}
+
+/* 9. Headlight Photon Pulse */
+@keyframes headlight-glow-pulse {
+  0%,
+  100% {
+    opacity: 0.88;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.headlight-photon-pulse {
+  animation: headlight-glow-pulse 0.8s ease-in-out infinite;
+}
+
+/* 10. Horizon Scanlines & Sun Glow */
+@keyframes sun-coronal-glow {
+  0%,
+  100% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+
+.sun-glow {
+  animation: sun-coronal-glow 2.5s ease-in-out infinite;
+}
+
+/* 11. Floating Hit / Pickup Feedback Pop */
+@keyframes float-up-fade {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 4px) scale(0.85);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -10px) scale(1.05);
+  }
+  80% {
+    opacity: 0.95;
+    transform: translate(-50%, -24px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -36px) scale(0.9);
+  }
+}
+
+.float-up-feedback {
+  animation: float-up-fade 0.72s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* T02-C27: Immediate Motion Suppression */
+html.reduce-motion .road-lane-animated,
+.reduce-motion .road-lane-animated,
+html.reduce-motion .road-lane-animated-nitro,
+.reduce-motion .road-lane-animated-nitro,
+html.reduce-motion .curb-animated,
+.reduce-motion .curb-animated,
+html.reduce-motion .curb-animated-nitro,
+.reduce-motion .curb-animated-nitro,
+html.reduce-motion .thruster-flame,
+.reduce-motion .thruster-flame,
+html.reduce-motion .thruster-flame-nitro,
+.reduce-motion .thruster-flame-nitro,
+html.reduce-motion .hover-craft-bob,
+.reduce-motion .hover-craft-bob,
+html.reduce-motion .spin-ring-3d,
+.reduce-motion .spin-ring-3d,
+html.reduce-motion .spike-hazard-pulse,
+.reduce-motion .spike-hazard-pulse,
+html.reduce-motion .warp-streak-l,
+.reduce-motion .warp-streak-l,
+html.reduce-motion .warp-streak-r,
+.reduce-motion .warp-streak-r,
+html.reduce-motion .warp-streak-diag-l1,
+.reduce-motion .warp-streak-diag-l1,
+html.reduce-motion .warp-streak-diag-l2,
+.reduce-motion .warp-streak-diag-l2,
+html.reduce-motion .warp-streak-diag-r1,
+.reduce-motion .warp-streak-diag-r1,
+html.reduce-motion .warp-streak-diag-r2,
+.reduce-motion .warp-streak-diag-r2,
+html.reduce-motion .warp-streak-center-l,
+.reduce-motion .warp-streak-center-l,
+html.reduce-motion .warp-streak-center-r,
+.reduce-motion .warp-streak-center-r,
+html.reduce-motion .wingtip-slipstream,
+.reduce-motion .wingtip-slipstream,
+html.reduce-motion .speed-rumble,
+.reduce-motion .speed-rumble,
+html.reduce-motion .headlight-photon-pulse,
+.reduce-motion .headlight-photon-pulse,
+html.reduce-motion .sun-glow,
+.reduce-motion .sun-glow,
+html.reduce-motion .tire-skid-particle,
+.reduce-motion .tire-skid-particle,
+html.reduce-motion .float-up-feedback,
+.reduce-motion .float-up-feedback {
+  animation: none !important;
+  display: none !important;
+}
