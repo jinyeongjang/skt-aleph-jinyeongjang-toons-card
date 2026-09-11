@@ -135,15 +135,6 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
     [processUploadedFile],
   );
 
-  // 지원하지 않는 파일(.gif / .pdf 등) 거부 시험용 자가 트리거 (T03-C10 검증용)
-  const handleSimulateInvalidFile = useCallback((fakeExtension: string) => {
-    setFileError({
-      message: `[검증 시뮬레이션] 지원하지 않는 파일 형식(${fakeExtension})이 거부되었습니다. PNG 또는 JPEG 파일만 허용됩니다. (기존 편집 작업 100% 유지)`,
-      timestamp: Date.now(),
-    });
-    setFileSuccess(null);
-  }, []);
-
   // 활성 텍스트 레이어 업데이트 (T03-C06, T03-C07, T03-C08)
   const updateActiveLayer = useCallback(
     (updates: Partial<TextLayer>) => {
@@ -267,13 +258,13 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
         >
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-rose-600 dark:text-rose-400" />
           <div className="flex-1">
-            <p className="font-semibold">파일 거부 (T03-C10)</p>
+            <p className="font-semibold">지원하지 않는 파일 형식</p>
             <p className="mt-0.5 text-xs text-rose-800 dark:text-rose-300">{fileError.message}</p>
           </div>
           <button
             type="button"
             onClick={() => setFileError(null)}
-            className="text-xs font-semibold underline hover:text-rose-700"
+            className="cursor-pointer text-xs font-semibold underline hover:text-rose-700"
           >
             닫기
           </button>
@@ -312,7 +303,7 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
                 key={ratio}
                 type="button"
                 onClick={() => handleRatioChange(ratio)}
-                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+                className={`cursor-pointer rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
                   isActive
                     ? 'bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-300 dark:bg-neutral-700 dark:text-white dark:ring-neutral-600'
                     : 'text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
@@ -329,26 +320,26 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
           <button
             type="button"
             onClick={onOpenAspectModal}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-1.5 text-xs font-semibold text-neutral-700 transition-colors hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
+            className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-1.5 text-xs font-semibold text-neutral-700 transition-colors hover:bg-neutral-100 hover:underline dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
           >
             <Maximize2 className="h-3.5 w-3.5 text-sky-500" />
-            <span>화면비 대조 검사 (카드 2)</span>
+            <span>화면비 비교</span>
           </button>
 
           <button
             type="button"
             onClick={handleSaveTemplate}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800 transition-colors hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 dark:hover:bg-emerald-900/60"
+            className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800 transition-colors hover:bg-emerald-100 hover:underline dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 dark:hover:bg-emerald-900/60"
           >
             <Bookmark className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-            <span>템플릿으로 저장 (T03-C17)</span>
+            <span>템플릿 저장</span>
           </button>
 
           <div className="flex items-center gap-1">
             <button
               type="button"
               onClick={() => handleDownload('png')}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-neutral-900 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl bg-neutral-900 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-neutral-800 hover:underline dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
             >
               <Download className="h-3.5 w-3.5" />
               <span>PNG 다운로드</span>
@@ -356,10 +347,10 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
             <button
               type="button"
               onClick={() => handleDownload('jpeg')}
-              className="inline-flex items-center gap-1 rounded-xl border border-neutral-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-neutral-700 transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
+              className="inline-flex cursor-pointer items-center gap-1 rounded-xl border border-neutral-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-neutral-700 transition-colors hover:bg-neutral-50 hover:underline dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
               title="JPEG 포맷으로 다운로드"
             >
-              <span>JPG</span>
+              <span>JPG 다운로드</span>
             </button>
           </div>
         </div>
@@ -376,7 +367,7 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
               <div className="flex items-center gap-2">
                 <ImageIcon className="h-4 w-4 text-sky-500" />
                 <h3 className="text-xs font-bold tracking-wider text-neutral-900 uppercase dark:text-white">
-                  이미지 편집 도구 (T03-C03)
+                  이미지 편집
                 </h3>
               </div>
               <span className="text-[11px] text-neutral-500 dark:text-neutral-400">PNG / JPEG 지원</span>
@@ -426,7 +417,7 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
                     key={p.id}
                     type="button"
                     onClick={() => handleSelectPresetImage(p.url)}
-                    className="group relative h-12 overflow-hidden rounded-lg border border-neutral-200 bg-neutral-900 text-left transition-all hover:ring-2 hover:ring-sky-500 dark:border-neutral-700"
+                    className="group relative h-12 cursor-pointer overflow-hidden rounded-lg border border-neutral-200 bg-neutral-900 text-left transition-all hover:ring-2 hover:ring-sky-500 dark:border-neutral-700"
                     title={p.name}
                   >
                     <img
@@ -441,43 +432,15 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
                 ))}
               </div>
             </div>
-
-            {/* [T03-C09, T03-C10 평가 시험 버튼] 잘못된 파일 주입 시뮬레이터 */}
-            <div className="flex items-center justify-between border-t border-neutral-200/60 pt-1 text-[11px] dark:border-neutral-700/60">
-              <span className="text-neutral-500">거부 시험 (T03-C10):</span>
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => handleSimulateInvalidFile('.gif')}
-                  className="rounded bg-neutral-200 px-1.5 py-0.5 text-neutral-700 hover:bg-neutral-300 dark:bg-neutral-700 dark:text-neutral-300"
-                >
-                  .gif 거부
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleSimulateInvalidFile('.pdf')}
-                  className="rounded bg-neutral-200 px-1.5 py-0.5 text-neutral-700 hover:bg-neutral-300 dark:bg-neutral-700 dark:text-neutral-300"
-                >
-                  .pdf 거부
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleSimulateInvalidFile('.txt')}
-                  className="rounded bg-neutral-200 px-1.5 py-0.5 text-neutral-700 hover:bg-neutral-300 dark:bg-neutral-700 dark:text-neutral-300"
-                >
-                  .txt 거부
-                </button>
-              </div>
-            </div>
           </div>
 
-          {/* 섹션 2: 문구 편집 도구 (T03-C03, T03-C06, T03-C07, T03-C08) */}
+          {/* 섹션 2: 문구 편집 */}
           <div className="space-y-3 rounded-xl border border-neutral-200/70 bg-neutral-50/70 p-3 dark:border-neutral-800/80 dark:bg-neutral-800/40">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Type className="h-4 w-4 text-indigo-500" />
                 <h3 className="text-xs font-bold tracking-wider text-neutral-900 uppercase dark:text-white">
-                  문구 편집 도구 (T03-C03)
+                  문구 편집
                 </h3>
               </div>
 
@@ -485,7 +448,7 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
               <button
                 type="button"
                 onClick={handleAddTextLayer}
-                className="inline-flex items-center gap-1 rounded-lg bg-indigo-50 px-2 py-1 text-[11px] font-semibold text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:text-indigo-300"
+                className="inline-flex cursor-pointer items-center gap-1 rounded-lg bg-indigo-50 px-2 py-1 text-[11px] font-semibold text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:text-indigo-300"
               >
                 <Plus className="h-3 w-3" />
                 <span>문구 추가</span>
@@ -501,7 +464,7 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
                     key={l.id}
                     type="button"
                     onClick={() => setSelectedLayerId(l.id)}
-                    className={`flex shrink-0 items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${
+                    className={`flex shrink-0 cursor-pointer items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${
                       isCurrent
                         ? 'bg-indigo-600 text-white shadow-sm'
                         : 'border border-neutral-200 bg-white text-neutral-700 dark:border-neutral-600 dark:bg-neutral-700 dark:text-neutral-300'
@@ -514,7 +477,7 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
                           e.stopPropagation();
                           handleDeleteTextLayer(l.id);
                         }}
-                        className="ml-0.5 hover:text-rose-200"
+                        className="ml-0.5 cursor-pointer hover:text-rose-200"
                         title="레이어 삭제"
                       >
                         ×
@@ -541,11 +504,11 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
                   />
                 </div>
 
-                {/* 2. 위치 변경 (T03-C06: 미리보기에 즉시 반영) */}
+                {/* 2. 문구 위치 */}
                 <div>
                   <div className="mb-1 flex items-center justify-between">
                     <label className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-400">
-                      문구 위치 변경 (T03-C06)
+                      문구 위치
                     </label>
                     <span className="text-[11px] text-neutral-500">Y: {activeLayer.posY}%</span>
                   </div>
@@ -555,7 +518,7 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
                         key={pos}
                         type="button"
                         onClick={() => handlePositionPreset(pos)}
-                        className={`rounded-lg py-1 text-xs font-semibold capitalize transition-colors ${
+                        className={`cursor-pointer rounded-lg py-1 text-xs font-semibold capitalize transition-colors ${
                           activeLayer.presetPosition === pos
                             ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900'
                             : 'border border-neutral-300 bg-white text-neutral-700 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300'
@@ -569,7 +532,7 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
                       <button
                         type="button"
                         onClick={() => updateActiveLayer({ align: 'left' })}
-                        className={`rounded p-1 ${activeLayer.align === 'left' ? 'bg-neutral-200 dark:bg-neutral-700' : ''}`}
+                        className={`cursor-pointer rounded p-1 ${activeLayer.align === 'left' ? 'bg-neutral-200 dark:bg-neutral-700' : ''}`}
                         title="좌측 정렬"
                       >
                         <AlignLeft className="h-3 w-3" />
@@ -577,7 +540,7 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
                       <button
                         type="button"
                         onClick={() => updateActiveLayer({ align: 'center' })}
-                        className={`rounded p-1 ${activeLayer.align === 'center' ? 'bg-neutral-200 dark:bg-neutral-700' : ''}`}
+                        className={`cursor-pointer rounded p-1 ${activeLayer.align === 'center' ? 'bg-neutral-200 dark:bg-neutral-700' : ''}`}
                         title="가운데 정렬"
                       >
                         <AlignCenter className="h-3 w-3" />
@@ -585,7 +548,7 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
                       <button
                         type="button"
                         onClick={() => updateActiveLayer({ align: 'right' })}
-                        className={`rounded p-1 ${activeLayer.align === 'right' ? 'bg-neutral-200 dark:bg-neutral-700' : ''}`}
+                        className={`cursor-pointer rounded p-1 ${activeLayer.align === 'right' ? 'bg-neutral-200 dark:bg-neutral-700' : ''}`}
                         title="우측 정렬"
                       >
                         <AlignRight className="h-3 w-3" />
@@ -609,11 +572,11 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
                   />
                 </div>
 
-                {/* 3. 크기 변경 (T03-C07: 미리보기에 즉시 반영) */}
+                {/* 3. 글자 크기 */}
                 <div>
                   <div className="mb-1 flex items-center justify-between">
                     <label className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-400">
-                      문구 크기 변경 (T03-C07)
+                      글자 크기
                     </label>
                     <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400">
                       {activeLayer.fontSize} px
@@ -632,14 +595,14 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
                       <button
                         type="button"
                         onClick={() => updateActiveLayer({ fontSize: Math.max(16, activeLayer.fontSize - 4) })}
-                        className="rounded border border-neutral-300 bg-white px-2 py-0.5 text-xs font-bold dark:border-neutral-700 dark:bg-neutral-800"
+                        className="cursor-pointer rounded border border-neutral-300 bg-white px-2 py-0.5 text-xs font-bold dark:border-neutral-700 dark:bg-neutral-800"
                       >
                         -
                       </button>
                       <button
                         type="button"
                         onClick={() => updateActiveLayer({ fontSize: Math.min(120, activeLayer.fontSize + 4) })}
-                        className="rounded border border-neutral-300 bg-white px-2 py-0.5 text-xs font-bold dark:border-neutral-700 dark:bg-neutral-800"
+                        className="cursor-pointer rounded border border-neutral-300 bg-white px-2 py-0.5 text-xs font-bold dark:border-neutral-700 dark:bg-neutral-800"
                       >
                         +
                       </button>
@@ -647,11 +610,11 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
                   </div>
                 </div>
 
-                {/* 4. 색상 변경 (T03-C08: 미리보기에 즉시 반영) */}
+                {/* 4. 글자 색상 */}
                 <div>
                   <div className="mb-1.5 flex items-center justify-between">
                     <label className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-400">
-                      문구 색 변경 (T03-C08)
+                      글자 색상
                     </label>
                     <span className="text-[11px] text-neutral-500">{activeLayer.color}</span>
                   </div>
@@ -673,7 +636,7 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
                         type="button"
                         onClick={() => updateActiveLayer({ color: c })}
                         style={{ backgroundColor: c }}
-                        className={`h-6 w-6 rounded-md border transition-transform ${
+                        className={`h-6 w-6 cursor-pointer rounded-md border transition-transform ${
                           activeLayer.color.toLowerCase() === c.toLowerCase()
                             ? 'scale-110 border-white ring-2 ring-indigo-500'
                             : 'border-neutral-400'
@@ -788,11 +751,11 @@ export const StudioEditor: React.FC<StudioEditorProps> = ({
           <div className="mt-3 flex flex-wrap items-center justify-center gap-4 text-[11px] text-neutral-500 dark:text-neutral-400">
             <span className="flex items-center gap-1">
               <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-              미리보기와 저장 파일 100% 동일 렌더링 (T03-C11~C13)
+              미리보기와 저장 파일 100% 동일 렌더링
             </span>
             <span className="flex items-center gap-1">
               <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-              EXIF/GPS 위치 정보 0건 메타데이터 자동 제거 (T03-C28)
+              개인정보 보호 EXIF 메타데이터 자동 소거
             </span>
           </div>
         </div>
